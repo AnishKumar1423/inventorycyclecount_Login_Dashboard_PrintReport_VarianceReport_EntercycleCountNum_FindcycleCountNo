@@ -3,6 +3,8 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 class PrintCycleCountReport extends StatefulWidget {
+  const PrintCycleCountReport({super.key});
+
   @override
   _PrintCycleCountReportPageState createState() => _PrintCycleCountReportPageState();
 }
@@ -16,7 +18,7 @@ class _PrintCycleCountReportPageState extends State<PrintCycleCountReport> {
 
     if (cycleCountNumber.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Please fill in fields')),
+        const SnackBar(content: Text('Please fill in fields')),
       );
       return;
     }
@@ -73,7 +75,7 @@ class _PrintCycleCountReportPageState extends State<PrintCycleCountReport> {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
 
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             TextField(
               controller: _controller2,
               decoration: const InputDecoration(
@@ -82,10 +84,10 @@ class _PrintCycleCountReportPageState extends State<PrintCycleCountReport> {
                 filled: true,
               ),
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             ElevatedButton(
               onPressed: _submitReport,
-              child: Text('Submit'),
+              child: const Text('Submit'),
             ),
           ],
         ),

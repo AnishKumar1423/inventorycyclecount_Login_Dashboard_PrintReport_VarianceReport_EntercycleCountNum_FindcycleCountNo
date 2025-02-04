@@ -1,10 +1,15 @@
-import 'package:flutter/material.dart';
+// ignore_for_file: prefer_const_constructors
 
+import 'package:flutter/material.dart';
+import 'package:inventorycyclecountak/updateCycleCount.dart';
+
+import 'enterCycleCount.dart'; // Import your pages here
 import 'printCycleCount.dart';
 import 'varianceReport.dart';
-import 'enterCycleCount.dart'; // Import your pages here
 
 class CycleCountDashboard extends StatelessWidget {
+  const CycleCountDashboard({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -28,7 +33,6 @@ class CycleCountDashboard extends StatelessWidget {
           crossAxisSpacing: 16,
           mainAxisSpacing: 16,
           children: <Widget>[
-
             _buildGridButton(
               context,
               icon: Icons.receipt,
@@ -36,7 +40,9 @@ class CycleCountDashboard extends StatelessWidget {
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => ApproveCycleCountPage()), // Replace with your actual page
+                  MaterialPageRoute(
+                      builder: (context) =>
+                          ApproveCycleCountPage()), // Replace with your actual page
                 );
               },
             ),
@@ -47,7 +53,9 @@ class CycleCountDashboard extends StatelessWidget {
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => PrintCycleCountReport()), // Replace with your actual page
+                  MaterialPageRoute(
+                      builder: (context) =>
+                          const PrintCycleCountReport()), // Replace with your actual page
                 );
               },
             ),
@@ -58,7 +66,9 @@ class CycleCountDashboard extends StatelessWidget {
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => CycleCountNumberFindButton()), // Replace with your actual page
+                  MaterialPageRoute(
+                      builder: (context) =>
+                          CycleCountNumberFindButton()), // Replace with your actual page
                 );
               },
             ),
@@ -69,7 +79,9 @@ class CycleCountDashboard extends StatelessWidget {
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => VarianceReport()), // Replace with your actual page
+                  MaterialPageRoute(
+                      builder: (context) =>
+                          VarianceReport()), // Replace with your actual page
                 );
               },
             ),
@@ -80,7 +92,9 @@ class CycleCountDashboard extends StatelessWidget {
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => ApproveCycleCountPage()), // Replace with your actual page
+                  MaterialPageRoute(
+                      builder: (context) =>
+                          ApproveCycleCountPage()), // Replace with your actual page
                 );
               },
             ),
@@ -91,11 +105,12 @@ class CycleCountDashboard extends StatelessWidget {
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => UpdateCycleCountPage()), // Replace with your actual page
+                  MaterialPageRoute(
+                      builder: (context) =>
+                          UpdateCycleCountPage()), // Replace with your actual page
                 );
               },
             ),
-
           ],
         ),
       ),
@@ -104,14 +119,16 @@ class CycleCountDashboard extends StatelessWidget {
 
   // A helper function to build each grid item as a button
   Widget _buildGridButton(BuildContext context,
-      {required IconData icon, required String label, required VoidCallback onPressed}) {
+      {required IconData icon,
+      required String label,
+      required VoidCallback onPressed}) {
     return GestureDetector(
       onTap: onPressed,
       child: Container(
         decoration: BoxDecoration(
           color: Colors.cyan[500],
           borderRadius: BorderRadius.circular(12),
-          boxShadow: [
+          boxShadow: const [
             BoxShadow(
               color: Colors.black26,
               blurRadius: 5,
@@ -123,10 +140,10 @@ class CycleCountDashboard extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             Icon(icon, size: 50, color: Colors.white),
-            SizedBox(height: 10),
+            const SizedBox(height: 10),
             Text(
               label,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 18,
                 color: Colors.white,
                 fontWeight: FontWeight.bold,
@@ -142,43 +159,38 @@ class CycleCountDashboard extends StatelessWidget {
 
 // Dummy pages for each button
 class EnterQuantity extends StatelessWidget {
+  const EnterQuantity({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Enter Cycle Count Quantity')),
-      body: Center(child: Text('Enter Cycle Count Page')),
+      appBar: AppBar(title: const Text('Enter Cycle Count Quantity')),
+      body: const Center(child: Text('Enter Cycle Count Page')),
     );
   }
 }
 
 class VarianceReportPage extends StatelessWidget {
+  const VarianceReportPage({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Run Variance Report')),
-      body: Center(child: Text('Variance Report Page')),
+      appBar: AppBar(title: const Text('Run Variance Report')),
+      body: const Center(child: Text('Variance Report Page')),
     );
   }
 }
 
 class ApproveCycleCountPage extends StatelessWidget {
+  const ApproveCycleCountPage({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Approve Cycle Count')),
-      body: Center(child: Text('Approve Cycle Count Page')),
+      appBar: AppBar(title: const Text('Approve Cycle Count')),
+      body: const Center(child: Text('Approve Cycle Count Page')),
     );
   }
 }
-
-class UpdateCycleCountPage extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text('Update Cycle Count')),
-      body: Center(child: Text('Update Cycle Count Page')),
-    );
-  }
-}
-
 

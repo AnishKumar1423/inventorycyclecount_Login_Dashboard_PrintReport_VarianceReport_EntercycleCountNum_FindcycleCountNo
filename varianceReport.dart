@@ -91,10 +91,10 @@ class _VarianceReportPageState extends State<VarianceReport> {
                 filled: true,
               ),
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             ElevatedButton(
               onPressed: _submitReport,
-              child: Text('Submit'),
+              child: const Text('Submit'),
             ),
           ],
         ),

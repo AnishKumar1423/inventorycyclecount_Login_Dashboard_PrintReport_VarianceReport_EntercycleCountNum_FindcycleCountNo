@@ -6,13 +6,13 @@ import 'package:http/http.dart' as http;
 import 'enterQuantity.dart';
 
 class CycleCountNumberFindButton extends StatefulWidget {
+  const CycleCountNumberFindButton({super.key});
+
   @override
-  _CycleCountNumberFindButtonState createState() =>
-      _CycleCountNumberFindButtonState();
+  _CycleCountNumberFindButtonState createState() =>_CycleCountNumberFindButtonState();
 }
 
-class _CycleCountNumberFindButtonState
-    extends State<CycleCountNumberFindButton> {
+class _CycleCountNumberFindButtonState extends State<CycleCountNumberFindButton> {
   // Define controllers for the input fields
   TextEditingController cycleCountController = TextEditingController();
   List<int> cycleNumbers = [];
@@ -235,7 +235,7 @@ class _CycleCountNumberFindButtonState
             onPressed: () => navigateToNextPage(context),
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.cyan,
-              padding: EdgeInsetsDirectional.fromSTEB(30, 0, 30, 0),
+              padding: const EdgeInsetsDirectional.fromSTEB(30, 0, 30, 0),
             ),
             child: const Text("OK",
                 style: TextStyle(fontSize: 25, color: Colors.white)),

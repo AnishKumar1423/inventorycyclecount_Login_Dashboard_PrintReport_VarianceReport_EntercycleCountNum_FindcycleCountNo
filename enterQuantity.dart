@@ -5,7 +5,7 @@ import 'package:http/http.dart' as http;
 class EnterCycleQuantityNumber extends StatefulWidget {
   final int selectedCycle;
 
-  EnterCycleQuantityNumber({required this.selectedCycle});
+  const EnterCycleQuantityNumber({super.key, required this.selectedCycle});
 
   @override
   _EnterQuantityState createState() => _EnterQuantityState();
@@ -32,7 +32,7 @@ class _EnterQuantityState extends State<EnterCycleQuantityNumber> {
 
     // Prepare request body to send the selected cycle number
     Map<String, dynamic> requestBody = {
-      "Cycle Number 1": widget.selectedCycle,
+      "Cycle Number 1": widget.selectedCycle.toString(),
     };
 
     try {
@@ -47,15 +47,18 @@ class _EnterQuantityState extends State<EnterCycleQuantityNumber> {
       );
 
       if (response.statusCode == 200) {
+        Map<String, dynamic> jsonResponse = jsonDecode(response.body);
+
+        // Ensure that we are extracting data from the correct field
+        var data = jsonResponse["DR_gettingDataa"] ?? [];
+
         setState(() {
-          apiData = jsonDecode(response.body)["data"] ?? [];
+          apiData = data; // Update apiData to hold the list from the API
         });
       } else {
-        // Handle error here if needed
         print("Error: Status code ${response.statusCode}");
       }
     } catch (error) {
-      // Handle any error occurred during the API call
       print("Error: $error");
     }
   }
@@ -107,25 +110,38 @@ class _EnterQuantityState extends State<EnterCycleQuantityNumber> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: <Widget>[
-                        Text(
-                          'Item ${index + 1}',
-                          style: const TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
+                        // Text(
+                        //   'Item ${index + 1}',
+                        //   style: const TextStyle(
+                        //     fontSize: 20,
+                        //     fontWeight: FontWeight.bold,
+                        //   ),
+                        // ),
                         const SizedBox(height: 10),
 
-                        // Iterate through all key-value pairs in the map
-                        ...item.entries.map((entry) {
-                          return Padding(
-                            padding: const EdgeInsets.only(bottom: 6.0),
-                            child: Text(
-                              '${entry.key}: ${entry.value}',
-                              style: const TextStyle(fontSize: 16),
-                            ),
-                          );
-                        }).toList(),
+                        // Display relevant fields from the API response
+                        Text(
+                          'Item Number  : ${item["2nd Item Number"]}',
+                          style: const TextStyle(fontSize: 16 ,fontWeight: FontWeight.bold),
+                        ),
+                        Text(
+                          'Business Unit : ${item["Business Unit [F4141]"]?.trim()}',
+                          style: const TextStyle(fontSize: 16),
+                        ),
+                        Text(
+                          'Location          : ${item["Location"]}',
+                          style: const TextStyle(fontSize: 16),
+                        ),
+                        Text(
+                          'Lot Number     : ${item["Lot Serial Number"]?.trim()}',
+                          style: const TextStyle(fontSize: 16),
+                        ),
+
+                        Text(
+                          'Total Qty          : ${item["Total Quantity"]}',
+                          style: const TextStyle(fontSize: 16),
+                        ),
+                        const SizedBox(height: 10),
                       ],
                     ),
                   ),

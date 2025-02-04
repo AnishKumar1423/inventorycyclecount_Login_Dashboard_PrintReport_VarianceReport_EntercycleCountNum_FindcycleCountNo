@@ -1,8 +1,11 @@
+// ignore_for_file: unused_import
+
 import 'dart:convert'; // For JSON encoding
+
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+
 import 'cycleCountDashboard.dart';
-import 'enterCycleCount.dart';
 
 void main() => runApp(MyApp());
 
@@ -22,7 +25,7 @@ class LoginPage extends StatelessWidget {
     return Scaffold(
       body: Container(
         width: double.infinity,
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             colors: [
@@ -38,7 +41,7 @@ class LoginPage extends StatelessWidget {
             Header(),
             Expanded(
               child: Container(
-                decoration: BoxDecoration(
+                decoration: const BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.only(
                     topLeft: Radius.circular(60),
@@ -60,7 +63,7 @@ class LoginPage extends StatelessWidget {
 class Header extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Padding(
+    return const Padding(
       padding: EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -75,8 +78,7 @@ class Header extends StatelessWidget {
           Center(
             child: Text(
               "Welcome to Rishikirti",
-              style: TextStyle(color: Colors.white, fontSize: 18),
-            ),
+              style: TextStyle(color: Colors.white, fontSize: 18),),
           ),
         ],
       ),
@@ -91,11 +93,11 @@ class InputWrapper extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.all(30),
+      padding: const EdgeInsets.all(30),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
-          SizedBox(height: 40),
+          const SizedBox(height: 40),
           Container(
             decoration: BoxDecoration(
               color: Colors.white,
@@ -106,7 +108,7 @@ class InputWrapper extends StatelessWidget {
               passwordController: passwordController,
             ),
           ),
-          SizedBox(height: 40),
+          const SizedBox(height: 40),
           Button(
             usernameController: usernameController,
             passwordController: passwordController,
@@ -121,7 +123,7 @@ class InputField extends StatelessWidget {
   final TextEditingController usernameController;
   final TextEditingController passwordController;
 
-  InputField(
+  const InputField(
       {required this.usernameController, required this.passwordController});
 
   @override
@@ -129,15 +131,15 @@ class InputField extends StatelessWidget {
     return Column(
       children: <Widget>[
         Container(
-          padding: EdgeInsets.all(10),
-          decoration: BoxDecoration(
+          padding: const EdgeInsets.all(10),
+          decoration: const BoxDecoration(
             border: Border(
               bottom: BorderSide(color: Colors.grey),
             ),
           ),
           child: TextField(
             controller: usernameController,
-            decoration: InputDecoration(
+            decoration: const InputDecoration(
               hintText: "Username",
               hintStyle: TextStyle(color: Colors.grey),
               border: InputBorder.none,
@@ -145,15 +147,15 @@ class InputField extends StatelessWidget {
           ),
         ),
         Container(
-          padding: EdgeInsets.all(10),
-          decoration: BoxDecoration(
+          padding: const EdgeInsets.all(10),
+          decoration: const BoxDecoration(
             border: Border(
               bottom: BorderSide(color: Colors.grey),
             ),
           ),
           child: TextField(
             controller: passwordController,
-            decoration: InputDecoration(
+            decoration: const InputDecoration(
               hintText: "Password",
               hintStyle: TextStyle(color: Colors.grey),
               border: InputBorder.none,
@@ -179,7 +181,7 @@ class Button extends StatelessWidget {
     // Validate that the username and password are not empty
     if (username.isEmpty || password.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Username and Password cannot be empty")),
+        const SnackBar(content: Text("Username and Password cannot be empty")),
       );
       return;
     }
@@ -194,7 +196,8 @@ class Button extends StatelessWidget {
         'Basic ${base64Encode(utf8.encode('$authUsername:$authPassword'))}';
 
     try {
-      print("Sending GET request to URL: $url?username=$username&password=$password");
+      print(
+          "Sending GET request to URL: $url?username=$username&password=$password");
 
       // Sending HTTP GET request with username and password as query parameters
       final response = await http.get(
@@ -216,34 +219,41 @@ class Button extends StatelessWidget {
         } catch (e) {
           print("Error parsing JSON: $e");
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text("Invalid response format")),
+            const SnackBar(content: Text("Invalid response format")),
           );
           return;
         }
 
         // Check if DR_gettingData contains meaningful data
-        if (data['DR_gettingData'] != null && data['DR_gettingData'].isNotEmpty) {
+        if (data['DR_gettingData'] != null &&
+            data['DR_gettingData'].isNotEmpty) {
+          // ignore: use_build_context_synchronously
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text("Login Success")),
+            const SnackBar(content: Text("Login Success")),
           );
 
+          // ignore: use_build_context_synchronously
           Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => CycleCountDashboard()),
-            );
+            context,
+            MaterialPageRoute(
+                builder: (context) => const CycleCountDashboard()),
+          );
         } else {
+          // ignore: use_build_context_synchronously
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text("Invalid username or password")),
           );
         }
       } else {
         print("Server Error: ${response.statusCode}, Body: ${response.body}");
+        // ignore: use_build_context_synchronously
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("Server error, try again later")),
         );
       }
     } catch (e) {
       print("Request Error: $e");
+      // ignore: use_build_context_synchronously
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Error: $e")),
       );
@@ -263,7 +273,7 @@ class Button extends StatelessWidget {
           color: Colors.cyan[500],
           borderRadius: BorderRadius.circular(10),
         ),
-        child: Center(
+        child: const Center(
           child: Text(
             "Login",
             style: TextStyle(
