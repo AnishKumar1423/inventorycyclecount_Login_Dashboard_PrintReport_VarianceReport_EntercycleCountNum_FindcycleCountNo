@@ -15,10 +15,9 @@ class _ReviewsCycleCountStatusState extends State<ReviewsCycleCountStatus> {
   TextEditingController();
   final TextEditingController _thruCycleStatusController =
   TextEditingController();
-
-
   final TextEditingController _cycleNoFilterController =
   TextEditingController();
+
   List<dynamic> apiData = [];
   List<dynamic> filteredData = [];
 
@@ -55,7 +54,8 @@ class _ReviewsCycleCountStatusState extends State<ReviewsCycleCountStatus> {
     print("Request Body: $body");
 
     try {
-      final response = await http.post(Uri.parse(url), headers: headers, body: body);
+      final response =
+      await http.post(Uri.parse(url), headers: headers, body: body);
       print("Response Status: ${response.statusCode}");
       print("Response Body: ${response.body}");
 
@@ -68,7 +68,7 @@ class _ReviewsCycleCountStatusState extends State<ReviewsCycleCountStatus> {
         });
 
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Successfully submitted')),
+          const SnackBar(content: Text('Find Status Successfully')),
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -96,136 +96,208 @@ class _ReviewsCycleCountStatusState extends State<ReviewsCycleCountStatus> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Reviews Cycle Count')),
+      appBar: AppBar(
+        title: const Text(
+          'Reviews Cycle Count',
+          style: TextStyle(color: Colors.white, fontSize: 20), // Customize text style
+        ),
+        backgroundColor: Color(0xFF244e6f),
+        elevation: 4, // Adjust shadow
+      ),
+
       body: Padding(
         padding: const EdgeInsets.all(8.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // TextFields for input
+            // Row for From Status, Thru Status, and Find button
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween, // Space between items
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Expanded(
-                  child: SizedBox(
-                    height: 50, // Set a fixed height
-                    child: TextField(
-                      controller: _cycleStatusFromController,
-                      decoration: const InputDecoration(
-                        labelText: 'From Cycle Status',
-                        border: OutlineInputBorder(),
-                        filled: true,
-                      ),
+                Container(
+                  width: 120, // Adjust width for "From Status"
+                  child: TextField(
+                    controller: _cycleStatusFromController,
+                    decoration: const InputDecoration(
+                      fillColor: Colors.white,
+                      labelText: 'From Status',
+                      border: OutlineInputBorder(),
+                      filled: true,
                     ),
                   ),
                 ),
-                const SizedBox(width: 10), // Spacing between the text fields
-                Expanded(
-                  child: SizedBox(
-                    height: 50, // Set a fixed height
-                    child: TextField(
-                      controller: _thruCycleStatusController,
-                      decoration: const InputDecoration(
-                        labelText: 'Thru Cycle Status',
-                        border: OutlineInputBorder(),
-                        filled: true,
-                      ),
+                const SizedBox(width: 10),
+                Container(
+                  width: 120, // Adjust width for "Thru Status"
+                  child: TextField(
+                    controller: _thruCycleStatusController,
+                    decoration: const InputDecoration(
+                      fillColor: Colors.white,
+                      labelText: 'Thru Status',
+                      border: OutlineInputBorder(),
+                      filled: true,
                     ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                ElevatedButton(
+                  onPressed: _submitReport,
+                  child: const Padding(
+                    padding: EdgeInsets.symmetric(
+                        vertical: 15.0, horizontal: 10.0),
+                    child: Icon(Icons.search),
                   ),
                 ),
               ],
             ),
-
             const SizedBox(height: 10),
 
-            // Row for Filter TextField and Find Button
+            // Filter TextField below
             Row(
               children: [
-                // Find Button with padding inside
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 50.0),
-                  child: ElevatedButton(
-                    onPressed: _submitReport,
-                    child: const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 15.0, horizontal: 20.0),
-                      child: Text('Find'),
-                    ),
-                  ),
-                ),
-                // Filter TextField for Cycle No with custom width, height, and padding
                 Container(
-                  width: 150, // Set the width of the filter box
-                  height: 40, // Set the height of the filter box
-                  padding: const EdgeInsets.symmetric(horizontal: 10.0), // Padding inside the filter box
+                  width: 275,
+                  height: 40,
+                  padding: const EdgeInsets.symmetric(horizontal: 10.0),
                   child: TextField(
                     controller: _cycleNoFilterController,
                     decoration: const InputDecoration(
+                      fillColor: Colors.white,
                       labelText: 'Find Cycle No',
                       border: OutlineInputBorder(),
                       filled: true,
                     ),
                     onChanged: (value) => _filterData(),
-                    style: TextStyle(fontSize: 12),
+                    style: const TextStyle(fontSize: 12),
                     maxLines: 1,
                   ),
                 ),
-                const SizedBox(width: 10), // Spacing between filter and button
+                const SizedBox(width: 10),
+                const Text(
+                  'Filter', // The text added in front of the input field
+                  style: TextStyle(fontSize: 14),
+                ),
               ],
             ),
             const SizedBox(height: 10),
 
-            // Optimized Table UI
+            // Scrollable Table UI with alternating row colors and centered headers
             filteredData.isNotEmpty
                 ? Expanded(
               child: SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
-                child: DataTable(
-                  columnSpacing: 8, // Reduced space between columns
-                  dataRowMinHeight: 30, // Minimum row height
-                  dataRowMaxHeight: 40, // Maximum row height
-                  border: TableBorder.all(color: Colors.black),
-                  columns: const [
-                    DataColumn(
-                      label: SizedBox(
-                        width: 70, // Reduced width for compactness
-                        child: Text('Cycle No', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.vertical, // Vertical scrolling
+                  child: DataTable(
+                    columnSpacing: 8, // Reduced space between columns
+                    dataRowMinHeight: 30, // Minimum row height
+                    dataRowMaxHeight: 40, // Maximum row height
+                    border: TableBorder.all(color: Colors.grey),
+                    headingRowColor: MaterialStateProperty.resolveWith(
+                            (states) => Color(0xFF244e6f),), // Header background color
+                    columns: const [
+                      DataColumn(
+                        label: Center(
+                          child: Text(
+                            'Cycle No',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
                       ),
-                    ),
-                    DataColumn(
-                      label: SizedBox(
-                        width: 70, // Reduced width for compactness
-                        child: Text('Status', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                      DataColumn(
+                        label: Center(
+                          child: Text(
+                            'Description',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
                       ),
-                    ),
-                    DataColumn(
-                      label: SizedBox(
-                        width: 80, // Reduced width for compactness
-                        child: Text('Count Date', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                      DataColumn(
+                        label: Center(
+                          child: Text(
+                            'Status',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
                       ),
-                    ),
-                    DataColumn(
-                      label: SizedBox(
-                        width: 90, // Reduced width for compactness
-                        child: Text('Description', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                      DataColumn(
+                        label: Center(
+                          child: Text(
+                            'Count Date',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
                       ),
-                    ),
-                  ],
-                  rows: filteredData.map((item) {
-                    return DataRow(cells: [
-                      DataCell(SizedBox(
-                          width: 70,
-                          child: Text(item["Cycle Number"].toString(), style: const TextStyle(fontSize: 12)))),
-                      DataCell(SizedBox(
-                          width: 70,
-                          child: Text(item["Cycle Status"].toString(), style: const TextStyle(fontSize: 12)))),
-                      DataCell(SizedBox(
-                          width: 80,
-                          child: Text(item["Count Date"].toString(), style: const TextStyle(fontSize: 12)))),
-                      DataCell(SizedBox(
-                          width: 90,
-                          child: Text(item["Description"].toString(), style: const TextStyle(fontSize: 12)))),
-                    ]);
-                  }).toList(),
+                    ],
+                    rows: List<DataRow>.generate(filteredData.length,
+                            (index) {
+                          final item = filteredData[index];
+                          return DataRow(
+                            color: MaterialStateProperty.resolveWith<Color>(
+                                  (Set<MaterialState> states) {
+                                // Alternating row colors
+                                return index % 2 == 0
+                                    ? Colors.white
+                                    : Colors.grey[200]!;
+                              },
+                            ),
+                            cells: [
+                              DataCell(Container(
+                                width: 30, // Fixed width for the 'Cycle No' column
+                                alignment: Alignment.center,
+                                child: Text(item["Cycle Number"].toString(),
+                                    textAlign: TextAlign.center,
+                                    style: const TextStyle(fontSize: 12)),
+                              )),
+                              DataCell(Container(
+                                width: 170, // Fixed width for the 'Description' column
+                                alignment: Alignment.center,
+                                child: Text(
+                                  item["Description"]
+                                      ?.toString()
+                                      .isNotEmpty ==
+                                      true
+                                      ? item["Description"].toString()
+                                      : 'N/A', // Placeholder for empty descriptions
+                                  textAlign: TextAlign.center,
+                                  style: const TextStyle(fontSize: 12),
+                                  maxLines: 1, // Avoid content overflow
+                                ),
+                              )),
+                              DataCell(Container(
+                                width: 40, // Fixed width for the 'Status' column
+                                alignment: Alignment.center,
+                                child: Text(item["Cycle Status"].toString(),
+                                    textAlign: TextAlign.center,
+                                    style: const TextStyle(fontSize: 12)),
+                              )),
+                              DataCell(Container(
+                                width: 65, // Fixed width for the 'Count Date' column
+                                alignment: Alignment.center,
+                                child: Text(item["Count Date"].toString(),
+                                    textAlign: TextAlign.center,
+                                    style: const TextStyle(fontSize: 12)),
+                              )),
+                            ],
+                          );
+                        }),
+                  ),
                 ),
               ),
             )

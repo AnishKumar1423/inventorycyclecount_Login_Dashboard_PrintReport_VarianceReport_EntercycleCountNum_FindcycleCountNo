@@ -29,9 +29,9 @@ class LoginPage extends StatelessWidget {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             colors: [
-              Colors.cyan,
-              Colors.cyan,
-              Colors.cyan,
+              Color(0xFF244e6f),  // The color you provided
+              Color(0xFF244e6f),  // Same color for the gradient effect
+              Color(0xFF244e6f),  // Same color for consistency
             ],
           ),
         ),
@@ -63,22 +63,25 @@ class LoginPage extends StatelessWidget {
 class Header extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return const Padding(
-      padding: EdgeInsets.all(20),
+    return Padding(
+      padding: const EdgeInsets.all(20),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: <Widget>[
-          Center(
-            child: Text(
-              "Login",
-              style: TextStyle(color: Colors.white, fontSize: 40),
-            ),
+          // const Text(
+          //   "Inventory Cycle Count",
+          //   style: TextStyle(color: Colors.white, fontSize: 18),
+          //   textAlign: TextAlign.center,  // Ensures text is centered
+          // ),
+          // Displaying the image
+          Image.asset(
+            'assets/image/Anish.png',
+            fit: BoxFit.contain, // or BoxFit.cover, depending on your layout
           ),
-          SizedBox(height: 10),
-          Center(
-            child: Text(
-              "Welcome to Rishikirti",
-              style: TextStyle(color: Colors.white, fontSize: 18),),
+          const Text(
+            "Inventory Cycle Count",
+            style: TextStyle(color: Colors.white, fontSize: 18),
+            textAlign: TextAlign.center,  // Ensures text is centered
           ),
         ],
       ),
@@ -270,7 +273,7 @@ class Button extends StatelessWidget {
         height: 50,
         margin: EdgeInsets.symmetric(horizontal: 50),
         decoration: BoxDecoration(
-          color: Colors.cyan[500],
+          color: Color(0xFF244e6f),
           borderRadius: BorderRadius.circular(10),
         ),
         child: const Center(

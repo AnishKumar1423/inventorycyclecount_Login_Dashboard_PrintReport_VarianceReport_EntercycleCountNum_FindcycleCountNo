@@ -14,21 +14,29 @@ class EnterCycleQuantityNumber extends StatefulWidget {
 class _EnterQuantityState extends State<EnterCycleQuantityNumber> {
   List<dynamic> apiData = [];
   List<dynamic> filteredData = [];
-  Map<int, TextEditingController> quantityControllers = {};
-  TextEditingController filterController = TextEditingController();
+  TextEditingController searchController = TextEditingController();
+  String _searchQuery = '';
+  Map<int, TextEditingController> qtyControllers = {};
 
   @override
   void initState() {
     super.initState();
     fetchData();
+    searchController.addListener(() {
+      setState(() {
+        _searchQuery = searchController.text;
+        filterData();
+      });
+    });
   }
 
+  // Function to fetch data from the API
   Future<void> fetchData() async {
     String url =
-        'http://192.168.0.36:7018/jderest/v3/orchestrator/ORCH_gettingDataFromF4141';
+        'http://192.168.0.36:7018/jderest/v3/orchestrator/ORCH_gettingDataFromF4141'; // Use your actual API here
 
-    String authUsername = "ANISHKT";
-    String authPassword = "Kirti@321";
+    String authUsername = "JDE";
+    String authPassword = "Local#123";
     String basicAuth =
         'Basic ${base64Encode(utf8.encode('$authUsername:$authPassword'))}';
 
@@ -52,14 +60,15 @@ class _EnterQuantityState extends State<EnterCycleQuantityNumber> {
         var data = jsonResponse["DR_gettingDataa"] ?? [];
 
         setState(() {
-          apiData = data;
-          filteredData = List.from(apiData);
-          quantityControllers.clear();
+          apiData = data.map((item) {
+            item['Entered Quantity'] = '';
+            return item;
+          }).toList();
 
-          for (var i = 0; i < apiData.length; i++) {
-            quantityControllers[i] = TextEditingController(
-                text: apiData[i]["Total Quantity"]?.toString() ?? '');
-          }
+          filteredData = apiData;
+          qtyControllers = {
+            for (int i = 0; i < apiData.length; i++) i: TextEditingController(),
+          };
         });
       } else {
         print("Error: Status code ${response.statusCode}");
@@ -69,68 +78,124 @@ class _EnterQuantityState extends State<EnterCycleQuantityNumber> {
     }
   }
 
-  void filterItems(String query) {
+  // Function to filter the data based on the search query
+  void filterData() {
     setState(() {
-      filteredData = apiData
-          .where((item) => item["2nd Item Number"]
-          .toString()
-          .toLowerCase()
-          .contains(query.toLowerCase()))
-          .toList();
+      if (_searchQuery.isEmpty) {
+        filteredData = apiData;
+      } else {
+        filteredData = apiData
+            .where((item) => item["2nd Item Number"]
+            .toLowerCase()
+            .contains(_searchQuery.toLowerCase()))
+            .toList();
+      }
     });
   }
 
-  void submitQuantity(int index, int originalIndex) {
-    String updatedQuantity = quantityControllers[originalIndex]?.text ?? "";
+  // Function to submit quantity to the server
+  Future<void> submitQuantity(int index) async {
+    String url =
+        'http://192.168.0.36:7018/jderest/v3/orchestrator/ORCH_enterQuantityP41240'; // Replace with actual API
+    String enteredQty = qtyControllers[index]?.text ?? '';
 
-    if (updatedQuantity.isNotEmpty) {
-      setState(() {
-        apiData[originalIndex]["Total Quantity"] = updatedQuantity;
-        filteredData[index]["Total Quantity"] = updatedQuantity;
-      });
+    String authUsername = "JDE";
+    String authPassword = "Local#123";
+    String basicAuth =
+        'Basic ${base64Encode(utf8.encode('$authUsername:$authPassword'))}';
 
-      print("Updated Quantity for item $originalIndex: $updatedQuantity");
+    if (enteredQty.isEmpty ||
+        int.tryParse(enteredQty) == null ||
+        int.parse(enteredQty) <= 0) {
+      print("Invalid quantity entered");
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter a valid quantity')),
+      );
+      return;
+    }
+
+    var item = filteredData[index];
+
+    Map<String, dynamic> requestBody = {
+      "Second_Item_Number": item["2nd Item Number"],
+      "Branch__Plant": item["Business Unit [F4141]"],
+      "Lot_Serial": item["Lot Serial Number"],
+      "Select_Row": "1",
+      "Update_Row": "1",
+      "Cycle_Number": widget.selectedCycle,
+      "Quantity": enteredQty,
+    };
+
+    try {
+      final response = await http.post(
+        Uri.parse(url),
+        headers: {
+          'Authorization': basicAuth,
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode(requestBody),
+      );
+
+      print('Response status: ${response.statusCode}');
+      print('Response body: ${response.body}');
+
+      if (response.statusCode == 200) {
+        var responseData = jsonDecode(response.body);
+
+        if (responseData['status'] == 'success') {
+          setState(() {
+            filteredData[index]['Entered Quantity'] = enteredQty;
+            apiData[index]['Entered Quantity'] = enteredQty;
+          });
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Quantity updated for Item ${item["2nd Item Number"]}')),
+          );
+          qtyControllers[index]?.clear();
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Enter Quantity Successfull for Item ${item["2nd Item Number"]}')),
+          );
+        }
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to update quantity. Status code: ${response.statusCode}')),
+        );
+      }
+    } catch (error) {
+      print("Error: $error");
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Error updating quantity. Please try again later.')),
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Enter Quantity for Cycle  ${widget.selectedCycle}'),
+      appBar:AppBar(
+        title: const Text(
+          'Enter Quantity',
+          style: TextStyle(color: Colors.white, fontSize: 20), // Customize text style
+        ),
+        backgroundColor: Color(0xFF244e6f),
+        elevation: 4, // Adjust shadow
       ),
       body: Column(
         children: <Widget>[
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: TextField(
-              controller: filterController,
-              decoration: InputDecoration(
-                labelText: 'Filter By Item Number',
-                border: OutlineInputBorder(),
-                suffixIcon: IconButton(
-                  icon: Icon(Icons.clear),
-                  onPressed: () {
-                    filterController.clear();
-                    filterItems('');
-                  },
-                ),
-              ),
-              onChanged: filterItems,
-            ),
-          ),
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: Container(
               width: double.infinity,
               padding: const EdgeInsets.all(16.0),
               decoration: BoxDecoration(
-                color: Colors.cyan,
+                color: Colors.blueGrey,
                 borderRadius: BorderRadius.circular(8.0),
                 border: Border.all(color: Colors.black),
               ),
               child: Text(
-                'Cycle Count Number : ${widget.selectedCycle}',
+                'Cycle Count Number: ${widget.selectedCycle}',
                 style: const TextStyle(
                   fontSize: 18,
                   color: Colors.white,
@@ -140,26 +205,41 @@ class _EnterQuantityState extends State<EnterCycleQuantityNumber> {
               ),
             ),
           ),
+
+          // Search bar
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: TextField(
+              controller: searchController,
+              decoration: const InputDecoration(
+                hintText: 'Enter Item Number to search',
+                prefixIcon: Icon(Icons.search),
+                border: OutlineInputBorder(),
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 10),
+
+          // Display a ListView to show the filtered data from the API
           Expanded(
             child: filteredData.isNotEmpty
                 ? ListView.builder(
               itemCount: filteredData.length,
               itemBuilder: (context, index) {
                 var item = filteredData[index];
-                int originalIndex = apiData.indexOf(item);
 
                 return Card(
-                  margin: const EdgeInsets.symmetric(
-                      horizontal: 20, vertical: 10),
+                  margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                   child: Padding(
                     padding: const EdgeInsets.all(16.0),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: <Widget>[
+                        const SizedBox(height: 10),
                         Text(
                           'Item Number  : ${item["2nd Item Number"]}',
-                          style: const TextStyle(
-                              fontSize: 16, fontWeight: FontWeight.bold),
+                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                         ),
                         Text(
                           'Business Unit : ${item["Business Unit [F4141]"]?.trim()}',
@@ -174,31 +254,41 @@ class _EnterQuantityState extends State<EnterCycleQuantityNumber> {
                           style: const TextStyle(fontSize: 16),
                         ),
                         Text(
-                          'JDE Quantity : ${item["Total Prim Qty on Hand"]}',
+                          'JDE Quantity   : ${item["Total Prim Qty on Hand"]}',
                           style: const TextStyle(fontSize: 16),
                         ),
-                        Text(
-                          'Total Qty          : ${item["Total Quantity"]}',
-                          style: const TextStyle(fontSize: 16),
-                        ),
+                        const SizedBox(height: 10),
                         Row(
                           children: [
-                            Expanded(
-                              child: TextField(
-                                controller: quantityControllers[originalIndex],
-                                keyboardType: TextInputType.number,
-                                decoration: const InputDecoration(
-                                  labelText: 'Enter physical Qty',
-                                  border: OutlineInputBorder(),
+                            Text(
+                              'Total Qty          : ${item["Total Quantity"]}',
+                              style: const TextStyle(fontSize: 16),
+                            ),
+                            const SizedBox(width: 50),
+                            SizedBox(
+                              width: 100,
+                              child: Container(
+                                padding: const EdgeInsets.all(0),
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(5.0),
+                                  border: Border.all(color: Colors.black),
+                                ),
+                                child: TextFormField(
+                                  controller: qtyControllers[index],
+                                  decoration: const InputDecoration(
+                                    hintText: 'Enter Qty',
+                                    border: InputBorder.none,
+                                    contentPadding: EdgeInsets.all(8.0),
+                                  ),
                                 ),
                               ),
                             ),
-                            IconButton(
-                              icon: const Icon(Icons.send,
-                                  color: Colors.blue),
-                              onPressed: () => submitQuantity(index, originalIndex),
-                            ),
                           ],
+                        ),
+                        const SizedBox(height: 10),
+                        ElevatedButton(
+                          onPressed: () => submitQuantity(index),
+                          child: const Text('Update Quantity'),
                         ),
                       ],
                     ),
@@ -211,14 +301,5 @@ class _EnterQuantityState extends State<EnterCycleQuantityNumber> {
         ],
       ),
     );
-  }
-
-  @override
-  void dispose() {
-    for (var controller in quantityControllers.values) {
-      controller.dispose();
-    }
-    filterController.dispose();
-    super.dispose();
   }
 }

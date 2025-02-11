@@ -16,9 +16,14 @@ class CycleCountDashboard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Dashboard'),
-        backgroundColor: Colors.cyan,
+        title: const Text(
+          'Dashboard',
+          style: TextStyle(color: Colors.white, fontSize: 20), // Customize text style
+        ),
+        backgroundColor: Color(0xFF244e6f),
+        elevation: 4, // Adjust shadow
       ),
+
       body: Container(
         padding: const EdgeInsets.fromLTRB(30, 120, 30, 50),
         decoration: const BoxDecoration(
@@ -128,7 +133,7 @@ class CycleCountDashboard extends StatelessWidget {
       onTap: onPressed,
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.cyan[500],
+          color: Color(0xFF244e6f),
           borderRadius: BorderRadius.circular(12),
           boxShadow: const [
             BoxShadow(

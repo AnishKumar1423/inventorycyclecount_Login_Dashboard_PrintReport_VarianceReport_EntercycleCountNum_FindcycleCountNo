@@ -27,8 +27,8 @@ class _PrintCycleCountReportPageState extends State<PrintCycleCountReport> {
         'http://192.168.0.36:7018/jderest/v3/orchestrator/ORCH_printCycleCount';
 
     // Basic Authentication Credentials
-    String authUsername = "ANISHKT";
-    String authPassword = "Kirti@321";
+    String authUsername = "JDE";
+    String authPassword = "Local#123";
     String basicAuth =
         'Basic ${base64Encode(utf8.encode('$authUsername:$authPassword'))}';
 
@@ -38,7 +38,7 @@ class _PrintCycleCountReportPageState extends State<PrintCycleCountReport> {
     };
 
     final body = jsonEncode({
-       'cycleCountNumber': cycleCountNumber,
+      'cycleCountNumber': cycleCountNumber,
     });
 
     print("Request Body: $body");
@@ -67,29 +67,54 @@ class _PrintCycleCountReportPageState extends State<PrintCycleCountReport> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Print Cycle Count Report')),
-      body: Padding(
+      appBar: AppBar(
+        title: const Text(
+          'Print Cycle Count Report',
+          style: TextStyle(color: Colors.white, fontSize: 20), // Customize text style
+        ),
+        backgroundColor: Color(0xFF244e6f),
+        elevation: 4, // Adjust shadow
+      ),
+      body: Container(
+        color: Colors.white, // Background color
         padding: const EdgeInsets.all(16.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-
-            const SizedBox(height: 20),
-            TextField(
-              controller: _controller2,
-              decoration: const InputDecoration(
-                labelText: 'Enter Cycle Count Number',
-                border: OutlineInputBorder(),
-                filled: true,
-              ),
+        child: Center(
+          child: Container(
+            padding: const EdgeInsets.all(16.0),
+            decoration: BoxDecoration(
+              color: Colors.white, // Inner container color
+              borderRadius: BorderRadius.circular(12.0), // Rounded corners
+              border: Border.all(color: Color(0xFF244e6f), width: 2.0), // Outer border
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.grey.withOpacity(0.5),
+                  spreadRadius: 3,
+                  blurRadius: 5,
+                  offset: Offset(0, 3), // Shadow position
+                ),
+              ],
             ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: _submitReport,
-              child: const Text('Submit'),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const SizedBox(height: 90), // Reduced space from 100 to 20
+                TextField(
+                  controller: _controller2,
+                  decoration: const InputDecoration(
+                    labelText: 'Enter Cycle Count Number',
+                    border: OutlineInputBorder(),
+                    filled: true,
+                  ),
+                ),
+                const SizedBox(height: 30), // Reduced space from 90 to 20
+                ElevatedButton(
+                  onPressed: _submitReport,
+                  child: const Text('Submit'),
+                ),
+                const SizedBox(height: 60), // Reduced space from 90 to 20
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );
