@@ -25,7 +25,7 @@ class CycleCountDashboard extends StatelessWidget {
       ),
 
       body: Container(
-        padding: const EdgeInsets.fromLTRB(30, 120, 30, 50),
+        padding: const EdgeInsets.fromLTRB(30, 100, 30, 50),
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,

@@ -36,8 +36,8 @@ class _ReviewsCycleCountStatusState extends State<ReviewsCycleCountStatus> {
         'http://192.168.0.36:7018/jderest/v3/orchestrator/ORCH_reviewCycleCount';
 
     // Basic Authentication Credentials
-    String authUsername = "ANISHKT";
-    String authPassword = "Kirti@321";
+    String authUsername = "JDE";
+    String authPassword = "Local#123";
     String basicAuth =
         'Basic ${base64Encode(utf8.encode('$authUsername:$authPassword'))}';
 
@@ -48,7 +48,7 @@ class _ReviewsCycleCountStatusState extends State<ReviewsCycleCountStatus> {
 
     final body = jsonEncode({
       "Cycle_Status_From": cycleStatusFrom,
-      "Thru_Cycle_Status": thruCycleStatus
+      "Cycle_Status_From": thruCycleStatus
     });
 
     print("Request Body: $body");
@@ -68,16 +68,16 @@ class _ReviewsCycleCountStatusState extends State<ReviewsCycleCountStatus> {
         });
 
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Find Status Successfully')),
+          const SnackBar(content: Text('Show Status')),
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Not successfully submitted')),
+          const SnackBar(content: Text('Error')),
         );
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error submitting: $e')),
+        SnackBar(content: Text('Error: $e')),
       );
     }
   }

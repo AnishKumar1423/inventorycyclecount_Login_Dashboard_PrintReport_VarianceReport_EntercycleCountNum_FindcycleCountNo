@@ -26,8 +26,8 @@ class _VarianceReportPageState extends State<VarianceReport> {
         'http://192.168.0.36:7018/jderest/v3/orchestrator/ORCH_varienceReport';
 
     // Basic Authentication Credentials
-    String authUsername = "ANISHKT";
-    String authPassword = "Kirti@321";
+    String authUsername = "JDE";
+    String authPassword = "Local#123";
     String basicAuth =
         'Basic ${base64Encode(utf8.encode('$authUsername:$authPassword'))}';
 

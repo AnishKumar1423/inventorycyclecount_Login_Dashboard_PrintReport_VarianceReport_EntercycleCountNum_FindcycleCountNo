@@ -1,10 +1,6 @@
-// ignore_for_file: unused_import
-
-import 'dart:convert'; // For JSON encoding
-
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-
 import 'cycleCountDashboard.dart';
 
 void main() => runApp(MyApp());
@@ -29,9 +25,9 @@ class LoginPage extends StatelessWidget {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             colors: [
-              Color(0xFF244e6f),  // The color you provided
-              Color(0xFF244e6f),  // Same color for the gradient effect
-              Color(0xFF244e6f),  // Same color for consistency
+              Color(0xFF244e6f),
+              Color(0xFF244e6f),
+              Color(0xFF244e6f),
             ],
           ),
         ),
@@ -68,20 +64,14 @@ class Header extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: <Widget>[
-          // const Text(
-          //   "Inventory Cycle Count",
-          //   style: TextStyle(color: Colors.white, fontSize: 18),
-          //   textAlign: TextAlign.center,  // Ensures text is centered
-          // ),
-          // Displaying the image
           Image.asset(
             'assets/image/Anish.png',
-            fit: BoxFit.contain, // or BoxFit.cover, depending on your layout
+            fit: BoxFit.contain,
           ),
           const Text(
             "Inventory Cycle Count",
             style: TextStyle(color: Colors.white, fontSize: 18),
-            textAlign: TextAlign.center,  // Ensures text is centered
+            textAlign: TextAlign.center,
           ),
         ],
       ),
@@ -126,8 +116,7 @@ class InputField extends StatelessWidget {
   final TextEditingController usernameController;
   final TextEditingController passwordController;
 
-  const InputField(
-      {required this.usernameController, required this.passwordController});
+  const InputField({required this.usernameController, required this.passwordController});
 
   @override
   Widget build(BuildContext context) {
@@ -136,9 +125,7 @@ class InputField extends StatelessWidget {
         Container(
           padding: const EdgeInsets.all(10),
           decoration: const BoxDecoration(
-            border: Border(
-              bottom: BorderSide(color: Colors.grey),
-            ),
+            border: Border(bottom: BorderSide(color: Colors.grey)),
           ),
           child: TextField(
             controller: usernameController,
@@ -152,9 +139,7 @@ class InputField extends StatelessWidget {
         Container(
           padding: const EdgeInsets.all(10),
           decoration: const BoxDecoration(
-            border: Border(
-              bottom: BorderSide(color: Colors.grey),
-            ),
+            border: Border(bottom: BorderSide(color: Colors.grey)),
           ),
           child: TextField(
             controller: passwordController,
@@ -163,7 +148,7 @@ class InputField extends StatelessWidget {
               hintStyle: TextStyle(color: Colors.grey),
               border: InputBorder.none,
             ),
-            obscureText: true, // Password field
+            obscureText: true,
           ),
         ),
       ],
@@ -181,7 +166,6 @@ class Button extends StatelessWidget {
     String username = usernameController.text.trim();
     String password = passwordController.text.trim();
 
-    // Validate that the username and password are not empty
     if (username.isEmpty || password.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Username and Password cannot be empty")),
@@ -189,20 +173,15 @@ class Button extends StatelessWidget {
       return;
     }
 
-    String url =
-        'http://192.168.0.36:7018/jderest/v3/orchestrator/ORCH_gettingDataFromF55USER';
+    String url = 'http://192.168.0.36:7018/jderest/v3/orchestrator/ORCH_getUserIDPassword';
 
-    // Basic Authentication Credentials
-    String authUsername = "ANISHKT";
-    String authPassword = "Kirti@321";
-    String basicAuth =
-        'Basic ${base64Encode(utf8.encode('$authUsername:$authPassword'))}';
+    // Use the user-entered credentials for authentication
+    String basicAuth = 'Basic ${base64Encode(utf8.encode('$username:$password'))}';
+
 
     try {
-      print(
-          "Sending GET request to URL: $url?username=$username&password=$password");
+      print("Sending GET request to: $url?username=$username&password=$password");
 
-      // Sending HTTP GET request with username and password as query parameters
       final response = await http.get(
         Uri.parse('$url?username=$username&password=$password'),
         headers: {
@@ -215,51 +194,76 @@ class Button extends StatelessWidget {
       print("Status Code: ${response.statusCode}");
 
       if (response.statusCode == 200) {
-        var data;
-        try {
-          data = json.decode(response.body);
-          print("Decoded Data: $data");
-        } catch (e) {
-          print("Error parsing JSON: $e");
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("Invalid response format")),
-          );
-          return;
+        var data = json.decode(response.body);
+        print("Decoded Data: $data");
+
+        if (data['ServiceRequest1']?['result']?['errors'] != null) {
+          var errorList = data['ServiceRequest1']['result']['errors'];
+          for (var error in errorList) {
+            if (error.containsKey("szerror")) {
+              String errorCode = error["szerror"];
+              String errorMessage = getErrorMessage(errorCode);
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text("Login Failed: $errorMessage")),
+              );
+              return;
+            }
+          }
         }
 
-        // Check if DR_gettingData contains meaningful data
-        if (data['DR_gettingData'] != null &&
-            data['DR_gettingData'].isNotEmpty) {
-          // ignore: use_build_context_synchronously
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("Login Success")),
-          );
+        if (data['ServiceRequest1']?['result']?['output'] != null) {
+          var output = data['ServiceRequest1']['result']['output'];
 
-          // ignore: use_build_context_synchronously
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-                builder: (context) => const CycleCountDashboard()),
-          );
+          String? apiUsername;
+          String? apiPassword;
+
+          for (var item in output) {
+            if (item['name'] == "szUserid") {
+              apiUsername = item['value'];
+            } else if (item['name'] == "szUserpassword") {
+              apiPassword = item['value'];
+            }
+          }
+
+          if (apiUsername == username && apiPassword == password) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text("Login Success")),
+            );
+
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const CycleCountDashboard()),
+            );
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text("Invalid username or password")),
+            );
+          }
         } else {
-          // ignore: use_build_context_synchronously
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text("Invalid username or password")),
           );
         }
       } else {
-        print("Server Error: ${response.statusCode}, Body: ${response.body}");
-        // ignore: use_build_context_synchronously
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("Server error, try again later")),
         );
       }
     } catch (e) {
-      print("Request Error: $e");
-      // ignore: use_build_context_synchronously
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Error: $e")),
       );
+    }
+  }
+
+  String getErrorMessage(String errorCode) {
+    switch (errorCode) {
+      case "0261":
+        return "Invalid username or password.";
+      case "9999":
+        return "System error. Please try again later.";
+      default:
+        return "Unknown error occurred.";
     }
   }
 
@@ -271,9 +275,9 @@ class Button extends StatelessWidget {
       },
       child: Container(
         height: 50,
-        margin: EdgeInsets.symmetric(horizontal: 50),
+        margin: const EdgeInsets.symmetric(horizontal: 50),
         decoration: BoxDecoration(
-          color: Color(0xFF244e6f),
+          color: const Color(0xFF244e6f),
           borderRadius: BorderRadius.circular(10),
         ),
         child: const Center(
