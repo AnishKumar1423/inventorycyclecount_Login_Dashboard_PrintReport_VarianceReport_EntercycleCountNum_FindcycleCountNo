@@ -154,6 +154,12 @@ class _CycleCountNumberFindButtonState extends State<CycleCountNumberFindButton>
         ),
         backgroundColor: Color(0xFF244e6f),
         elevation: 4, // Adjust shadow
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white), // Set back button icon color to black
+          onPressed: () {
+            Navigator.pop(context); // Go back to the previous screen
+          },
+        ),
       ),
       body: Column(
         children: <Widget>[
@@ -197,7 +203,7 @@ class _CycleCountNumberFindButtonState extends State<CycleCountNumberFindButton>
                     margin: const EdgeInsets.symmetric(horizontal: 50, vertical: 8),
                     padding: const EdgeInsets.all(12.0),
                     decoration: BoxDecoration(
-                      color: selectedCycle == cycleNumber ? Colors.blueGrey : Colors.white30,
+                      color: selectedCycle == cycleNumber ? Color(0xFF244e6f) : Colors.white30,
                       borderRadius: BorderRadius.circular(8.0),
                       border: Border.all(color: Colors.black),
                     ),
@@ -219,7 +225,7 @@ class _CycleCountNumberFindButtonState extends State<CycleCountNumberFindButton>
           ElevatedButton(
             onPressed: () => navigateToNextPage(context),
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.blueGrey,
+              backgroundColor: Color(0xFF244e6f),
               padding: const EdgeInsets.symmetric(horizontal: 30),
             ),
             child: const Text("OK", style: TextStyle(fontSize: 25, color: Colors.white)),

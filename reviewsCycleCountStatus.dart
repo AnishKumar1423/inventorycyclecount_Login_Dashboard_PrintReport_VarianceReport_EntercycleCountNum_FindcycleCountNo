@@ -48,7 +48,7 @@ class _ReviewsCycleCountStatusState extends State<ReviewsCycleCountStatus> {
 
     final body = jsonEncode({
       "Cycle_Status_From": cycleStatusFrom,
-      "Cycle_Status_From": thruCycleStatus
+      "Thru_Cycle_Status": thruCycleStatus
     });
 
     print("Request Body: $body");
@@ -103,6 +103,12 @@ class _ReviewsCycleCountStatusState extends State<ReviewsCycleCountStatus> {
         ),
         backgroundColor: Color(0xFF244e6f),
         elevation: 4, // Adjust shadow
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white), // Set back button icon color to black
+          onPressed: () {
+            Navigator.pop(context); // Go back to the previous screen
+          },
+        ),
       ),
 
       body: Padding(

@@ -30,13 +30,12 @@ class _EnterQuantityState extends State<EnterCycleQuantityNumber> {
     });
   }
 
-  // Function to fetch data from the API
   Future<void> fetchData() async {
     String url =
-        'http://192.168.0.36:7018/jderest/v3/orchestrator/ORCH_gettingDataFromF4141'; // Use your actual API here
+        'http://192.168.0.36:7018/jderest/v3/orchestrator/ORCH_gettingDataFromF4141';
 
-    String authUsername = "JDE";
-    String authPassword = "Local#123";
+    String authUsername = "ANISHKT";
+    String authPassword = "Kirti@321";
     String basicAuth =
         'Basic ${base64Encode(utf8.encode('$authUsername:$authPassword'))}';
 
@@ -78,7 +77,6 @@ class _EnterQuantityState extends State<EnterCycleQuantityNumber> {
     }
   }
 
-  // Function to filter the data based on the search query
   void filterData() {
     setState(() {
       if (_searchQuery.isEmpty) {
@@ -93,20 +91,10 @@ class _EnterQuantityState extends State<EnterCycleQuantityNumber> {
     });
   }
 
-  // Function to submit quantity to the server
-  Future<void> submitQuantity(int index) async {
-    String url =
-        'http://192.168.0.36:7018/jderest/v3/orchestrator/ORCH_enterQuantityP41240'; // Replace with actual API
+// Function to update the total quantity when the button is clicked
+  void updateTotalQuantity(int index) {
     String enteredQty = qtyControllers[index]?.text ?? '';
-
-    String authUsername = "JDE";
-    String authPassword = "Local#123";
-    String basicAuth =
-        'Basic ${base64Encode(utf8.encode('$authUsername:$authPassword'))}';
-
-    if (enteredQty.isEmpty ||
-        int.tryParse(enteredQty) == null ||
-        int.parse(enteredQty) <= 0) {
+    if (enteredQty.isEmpty || int.tryParse(enteredQty) == null || int.parse(enteredQty) <= 0) {
       print("Invalid quantity entered");
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please enter a valid quantity')),
@@ -115,11 +103,42 @@ class _EnterQuantityState extends State<EnterCycleQuantityNumber> {
     }
 
     var item = filteredData[index];
+    double totalQuantity = double.tryParse(item["Total Quantity"].toString()) ?? 0.0;
+
+    double enteredQuantity = double.tryParse(enteredQty) ?? 0.0;
+
+    setState(() {
+      filteredData[index]['Entered Quantity'] = enteredQty;
+      apiData[index]['Entered Quantity'] = enteredQty;
+
+      // Update total quantity as an integer
+      filteredData[index]['Total Quantity'] = (totalQuantity + enteredQuantity).toInt().toString();
+      apiData[index]['Total Quantity'] = filteredData[index]['Total Quantity'];
+    });
+  }
+
+
+  Future<void> submitQuantity(int index) async {
+    String url =
+        'http://192.168.0.36:7018/jderest/v3/orchestrator/ORCH_enterQuantityP41240';
+    String enteredQty = qtyControllers[index]?.text ?? '';
+
+    String authUsername = "ANISHKT";
+    String authPassword = "Kirti@321";
+    String basicAuth =
+        'Basic ${base64Encode(utf8.encode('$authUsername:$authPassword'))}';
+
+    var item = filteredData[index];
+    String originalQuantity = item['Entered Quantity']; // Save original quantity
+
+    updateTotalQuantity(index); // Update total quantity when button is clicked
+    String cycleStatus = int.tryParse(enteredQty) != null && int.parse(enteredQty) > 0 ? "30" : "20";
 
     Map<String, dynamic> requestBody = {
       "Second_Item_Number": item["2nd Item Number"],
       "Branch__Plant": item["Business Unit [F4141]"],
       "Lot_Serial": item["Lot Serial Number"],
+      "Cycle_Status": cycleStatus,
       "Select_Row": "1",
       "Update_Row": "1",
       "Cycle_Number": widget.selectedCycle,
@@ -137,33 +156,37 @@ class _EnterQuantityState extends State<EnterCycleQuantityNumber> {
         body: jsonEncode(requestBody),
       );
 
-      print('Response status: ${response.statusCode}');
-      print('Response body: ${response.body}');
-
       if (response.statusCode == 200) {
         var responseData = jsonDecode(response.body);
 
-        if (responseData['status'] == 'success') {
-          setState(() {
-            filteredData[index]['Entered Quantity'] = enteredQty;
-            apiData[index]['Entered Quantity'] = enteredQty;
-          });
-
+        if (responseData['jde__status'] == "SUCCESS") {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Quantity updated for Item ${item["2nd Item Number"]}')),
+            SnackBar(content: Text('Quantity successfully updated for Item ${item["2nd Item Number"]}')),
           );
-          qtyControllers[index]?.clear();
+          qtyControllers[index]?.clear(); // Clear the input field
         } else {
+          setState(() {
+            filteredData[index]['Entered Quantity'] = originalQuantity;
+            apiData[index]['Entered Quantity'] = originalQuantity;
+          });
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Enter Quantity Successfull for Item ${item["2nd Item Number"]}')),
+            SnackBar(content: Text('Failed to update quantity for Item ${item["2nd Item Number"]}')),
           );
         }
       } else {
+        setState(() {
+          filteredData[index]['Entered Quantity'] = originalQuantity;
+          apiData[index]['Entered Quantity'] = originalQuantity;
+        });
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Failed to update quantity. Status code: ${response.statusCode}')),
         );
       }
     } catch (error) {
+      setState(() {
+        filteredData[index]['Entered Quantity'] = originalQuantity;
+        apiData[index]['Entered Quantity'] = originalQuantity;
+      });
       print("Error: $error");
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Error updating quantity. Please try again later.')),
@@ -174,13 +197,19 @@ class _EnterQuantityState extends State<EnterCycleQuantityNumber> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar:AppBar(
-        title: const Text(
-          'Enter Quantity',
+      appBar: AppBar(
+        title: Text('Enter Quantity for Cycle ${widget.selectedCycle}' ,
           style: TextStyle(color: Colors.white, fontSize: 20), // Customize text style
         ),
         backgroundColor: Color(0xFF244e6f),
         elevation: 4, // Adjust shadow
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white), // Set back button icon color to black
+          onPressed: () {
+            Navigator.pop(context); // Go back to the previous screen
+          },
+        ),
+
       ),
       body: Column(
         children: <Widget>[
@@ -190,7 +219,7 @@ class _EnterQuantityState extends State<EnterCycleQuantityNumber> {
               width: double.infinity,
               padding: const EdgeInsets.all(16.0),
               decoration: BoxDecoration(
-                color: Colors.blueGrey,
+                color: Color(0xFF244e6f),
                 borderRadius: BorderRadius.circular(8.0),
                 border: Border.all(color: Colors.black),
               ),
@@ -206,7 +235,6 @@ class _EnterQuantityState extends State<EnterCycleQuantityNumber> {
             ),
           ),
 
-          // Search bar
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
             child: TextField(
@@ -221,7 +249,6 @@ class _EnterQuantityState extends State<EnterCycleQuantityNumber> {
 
           const SizedBox(height: 10),
 
-          // Display a ListView to show the filtered data from the API
           Expanded(
             child: filteredData.isNotEmpty
                 ? ListView.builder(
@@ -264,9 +291,9 @@ class _EnterQuantityState extends State<EnterCycleQuantityNumber> {
                               'Total Qty          : ${item["Total Quantity"]}',
                               style: const TextStyle(fontSize: 16),
                             ),
-                            const SizedBox(width: 50),
+                            const SizedBox(width: 45),
                             SizedBox(
-                              width: 100,
+                              width: 80,
                               child: Container(
                                 padding: const EdgeInsets.all(0),
                                 decoration: BoxDecoration(
@@ -276,7 +303,7 @@ class _EnterQuantityState extends State<EnterCycleQuantityNumber> {
                                 child: TextFormField(
                                   controller: qtyControllers[index],
                                   decoration: const InputDecoration(
-                                    hintText: 'Enter Qty',
+                                    hintText: 'Qty',
                                     border: InputBorder.none,
                                     contentPadding: EdgeInsets.all(8.0),
                                   ),

@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 import 'cycleCountDashboard.dart';
 
 void main() => runApp(MyApp());
@@ -11,11 +12,29 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       home: LoginPage(),
+     //  home: FutureBuilder<bool>(
+     //    future: checkSession(context),
+     //    builder: (context, snapshot) {
+     //      if (snapshot.connectionState == ConnectionState.waiting) {
+     //        return const Center(child: CircularProgressIndicator());
+     //      } else {
+     //        return snapshot.data == true ? const CycleCountDashboard() : const LoginPage();
+     //      }
+     //    },
+     //  ),
     );
   }
 }
 
+// // Check if session exists
+// Future<bool> checkSession(BuildContext context) async {
+//   final prefs = await SharedPreferences.getInstance();
+//   return prefs.getString('username') != null && prefs.getString('password') != null;
+// }
+
 class LoginPage extends StatelessWidget {
+  const LoginPage({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(

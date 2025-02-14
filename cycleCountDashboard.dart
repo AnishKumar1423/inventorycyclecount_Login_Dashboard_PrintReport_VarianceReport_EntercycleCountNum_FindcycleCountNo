@@ -1,11 +1,10 @@
-// ignore_for_file: prefer_const_constructors
-
 import 'package:flutter/material.dart';
 import 'package:inventorycyclecountak/reviewsCycleCountStatus.dart';
 import 'package:inventorycyclecountak/updateCycleCount.dart';
-
+import 'package:shared_preferences/shared_preferences.dart';
 import 'ApproveCycleCount.dart';
-import 'enterCycleCount.dart'; // Import your pages here
+import 'enterCycleCount.dart';
+import 'main.dart';
 import 'printCycleCount.dart';
 import 'varianceReport.dart';
 
@@ -18,25 +17,35 @@ class CycleCountDashboard extends StatelessWidget {
       appBar: AppBar(
         title: const Text(
           'Dashboard',
-          style: TextStyle(color: Colors.white, fontSize: 20), // Customize text style
+          style: TextStyle(color: Colors.white, fontSize: 20),
         ),
         backgroundColor: Color(0xFF244e6f),
-        elevation: 4, // Adjust shadow
+        elevation: 4,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white), // Set back button icon color to black
+          onPressed: () {
+            Navigator.pop(context); // Go back to the previous screen
+          },
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout, color: Colors.white),
+            onPressed: () {
+              _logout(context);
+            },
+          ),
+        ],
       ),
-
       body: Container(
         padding: const EdgeInsets.fromLTRB(30, 100, 30, 50),
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
-            colors: [
-              Colors.white,
-              Colors.white,
-            ],
+            colors: [Colors.white, Colors.white],
           ),
         ),
         child: GridView.count(
-          crossAxisCount: 2, // Two items per row in the grid
+          crossAxisCount: 2,
           crossAxisSpacing: 16,
           mainAxisSpacing: 16,
           children: <Widget>[
@@ -45,25 +54,15 @@ class CycleCountDashboard extends StatelessWidget {
               icon: Icons.receipt,
               label: 'Reviews of Cycle Count',
               onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) =>
-                          ReviewsCycleCountStatus()), // Replace with your actual page
-                );
+                Navigator.push(context, MaterialPageRoute(builder: (context) => ReviewsCycleCountStatus()));
               },
             ),
             _buildGridButton(
               context,
               icon: Icons.picture_as_pdf,
-              label: 'Print Cycle count',
+              label: 'Print Cycle Count',
               onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) =>
-                          const PrintCycleCountReport()), // Replace with your actual page
-                );
+                Navigator.push(context, MaterialPageRoute(builder: (context) => const PrintCycleCountReport()));
               },
             ),
             _buildGridButton(
@@ -71,12 +70,7 @@ class CycleCountDashboard extends StatelessWidget {
               icon: Icons.edit,
               label: 'Enter Cycle Count',
               onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) =>
-                          CycleCountNumberFindButton()), // Replace with your actual page
-                );
+                Navigator.push(context, MaterialPageRoute(builder: (context) => CycleCountNumberFindButton()));
               },
             ),
             _buildGridButton(
@@ -84,25 +78,15 @@ class CycleCountDashboard extends StatelessWidget {
               icon: Icons.bar_chart,
               label: 'Run Variance Report',
               onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) =>
-                          VarianceReport()), // Replace with your actual page
-                );
+                Navigator.push(context, MaterialPageRoute(builder: (context) => VarianceReport()));
               },
             ),
             _buildGridButton(
               context,
               icon: Icons.check,
-              label: 'Approve Cycle Count',
+              label: 'Approve/Cancel Cycle Count',
               onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) =>
-                          ApproveCycleCount()), // Replace with your actual page
-                );
+                Navigator.push(context, MaterialPageRoute(builder: (context) => ApproveCycleCount()));
               },
             ),
             _buildGridButton(
@@ -110,12 +94,7 @@ class CycleCountDashboard extends StatelessWidget {
               icon: Icons.update,
               label: 'Update Cycle  Count',
               onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) =>
-                          UpdateCycleCount()), // Replace with your actual page
-                );
+                Navigator.push(context, MaterialPageRoute(builder: (context) => UpdateCycleCount()));
               },
             ),
           ],
@@ -124,11 +103,7 @@ class CycleCountDashboard extends StatelessWidget {
     );
   }
 
-  // A helper function to build each grid item as a button
-  Widget _buildGridButton(BuildContext context,
-      {required IconData icon,
-      required String label,
-      required VoidCallback onPressed}) {
+  Widget _buildGridButton(BuildContext context, {required IconData icon, required String label, required VoidCallback onPressed}) {
     return GestureDetector(
       onTap: onPressed,
       child: Container(
@@ -162,6 +137,40 @@ class CycleCountDashboard extends StatelessWidget {
       ),
     );
   }
+
+  Future<void> _logout(BuildContext context) async {
+    // showDialog(
+    //   context: context,
+    //   builder: (BuildContext context) {
+    //     return AlertDialog(
+    //       title: Text("Logout"),
+    //       content: Text("Are you sure you want to log out?"),
+    //       actions: [
+    //         TextButton(
+    //           child: Text("Cancel"),
+    //           onPressed: () {
+    //             Navigator.of(context).pop();
+    //           },
+    //         ),
+    //         TextButton(
+    //           child: Text("Logout"),
+    //           onPressed: () {
+    //             Navigator.of(context).pop();
+    //             Navigator.pushReplacementNamed(context, 'LoginPage'); // Adjust as per your routes
+    //           },
+    //         ),
+    //       ],
+    //     );
+    //   },
+    // );
+    // Logout function
+
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.clear();
+
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => LoginPage()),
+      );
+  }
 }
-
-

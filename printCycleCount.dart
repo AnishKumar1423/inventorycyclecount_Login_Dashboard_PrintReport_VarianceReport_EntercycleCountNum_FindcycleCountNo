@@ -6,11 +6,12 @@ class PrintCycleCountReport extends StatefulWidget {
   const PrintCycleCountReport({super.key});
 
   @override
-  _PrintCycleCountReportPageState createState() => _PrintCycleCountReportPageState();
+  _PrintCycleCountReportPageState createState() =>
+      _PrintCycleCountReportPageState();
 }
 
-class _PrintCycleCountReportPageState extends State<PrintCycleCountReport> {
-
+class _PrintCycleCountReportPageState
+    extends State<PrintCycleCountReport> {
   TextEditingController _controller2 = TextEditingController();
 
   Future<void> _submitReport() async {
@@ -72,8 +73,14 @@ class _PrintCycleCountReportPageState extends State<PrintCycleCountReport> {
           'Print Cycle Count Report',
           style: TextStyle(color: Colors.white, fontSize: 20), // Customize text style
         ),
-        backgroundColor: Color(0xFF244e6f),
+        backgroundColor: const Color(0xFF244e6f),
         elevation: 4, // Adjust shadow
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white), // Set back button icon color to black
+          onPressed: () {
+            Navigator.pop(context); // Go back to the previous screen
+          },
+        ),
       ),
       body: Container(
         color: Colors.white, // Background color
@@ -84,13 +91,13 @@ class _PrintCycleCountReportPageState extends State<PrintCycleCountReport> {
             decoration: BoxDecoration(
               color: Colors.white, // Inner container color
               borderRadius: BorderRadius.circular(12.0), // Rounded corners
-              border: Border.all(color: Color(0xFF244e6f), width: 2.0), // Outer border
+              border: Border.all(color: const Color(0xFF244e6f), width: 2.0), // Outer border
               boxShadow: [
                 BoxShadow(
                   color: Colors.grey.withOpacity(0.5),
                   spreadRadius: 3,
                   blurRadius: 5,
-                  offset: Offset(0, 3), // Shadow position
+                  offset: const Offset(0, 3), // Shadow position
                 ),
               ],
             ),
@@ -101,6 +108,7 @@ class _PrintCycleCountReportPageState extends State<PrintCycleCountReport> {
                 TextField(
                   controller: _controller2,
                   decoration: const InputDecoration(
+                    fillColor: Colors.white,
                     labelText: 'Enter Cycle Count Number',
                     border: OutlineInputBorder(),
                     filled: true,
@@ -109,6 +117,10 @@ class _PrintCycleCountReportPageState extends State<PrintCycleCountReport> {
                 const SizedBox(height: 30), // Reduced space from 90 to 20
                 ElevatedButton(
                   onPressed: _submitReport,
+                  style: ElevatedButton.styleFrom(
+                    primary: const Color(0xFF244e6f), // Set the background color
+                    foregroundColor: Colors.white,
+                  ),
                   child: const Text('Submit'),
                 ),
                 const SizedBox(height: 60), // Reduced space from 90 to 20

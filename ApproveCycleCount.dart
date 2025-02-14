@@ -120,11 +120,17 @@ class _PrintCycleCountReportPageState extends State<ApproveCycleCount> {
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          'Approve / Cancel Cycle Count',
+          'Approve/Cancel Cycle Count',
           style: TextStyle(color: Colors.white, fontSize: 20), // Customize text style
         ),
         backgroundColor: Color(0xFF244e6f),
         elevation: 4, // Adjust shadow
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white), // Set back button icon color to black
+          onPressed: () {
+            Navigator.pop(context); // Go back to the previous screen
+          },
+        ),
       ),
       body: Container(
         color: Colors.white, // Background color

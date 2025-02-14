@@ -74,6 +74,12 @@ class _VarianceReportPageState extends State<VarianceReport> {
         ),
         backgroundColor: Color(0xFF244e6f),
         elevation: 4, // Adjust shadow
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white), // Set back button icon color to black
+          onPressed: () {
+            Navigator.pop(context); // Go back to the previous screen
+          },
+        ),
       ),
       body: Container(
         color: Colors.white, // Background color
@@ -101,6 +107,7 @@ class _VarianceReportPageState extends State<VarianceReport> {
                 TextField(
                   controller: _controller1,
                   decoration: const InputDecoration(
+                    fillColor: Colors.white,
                     labelText: 'Enter Business Unit',
                     border: OutlineInputBorder(),
                     filled: true,
@@ -110,6 +117,7 @@ class _VarianceReportPageState extends State<VarianceReport> {
                 TextField(
                   controller: _controller2,
                   decoration: const InputDecoration(
+                    fillColor: Colors.white,
                     labelText: 'Enter Cycle Count Number',
                     border: OutlineInputBorder(),
                     filled: true,
@@ -119,6 +127,10 @@ class _VarianceReportPageState extends State<VarianceReport> {
                 const SizedBox(height: 20), // Reduced space from 90 to 20
                 ElevatedButton(
                   onPressed: _submitReport,
+                  style: ElevatedButton.styleFrom(
+                      primary: const Color(0xFF244e6f), // Set the background color
+                      foregroundColor: Colors.white
+                  ),
                   child: const Text('Submit'),
                 ),
                 const SizedBox(height: 50), // Reduced space from 90 to 20
