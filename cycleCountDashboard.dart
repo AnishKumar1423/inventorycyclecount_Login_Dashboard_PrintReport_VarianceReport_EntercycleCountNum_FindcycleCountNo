@@ -19,7 +19,7 @@ class CycleCountDashboard extends StatelessWidget {
           'Dashboard',
           style: TextStyle(color: Colors.white, fontSize: 20),
         ),
-        backgroundColor: Color(0xFF244e6f),
+        backgroundColor: const Color(0xFF244e6f),
         elevation: 4,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white), // Set back button icon color to black
@@ -139,38 +139,38 @@ class CycleCountDashboard extends StatelessWidget {
   }
 
   Future<void> _logout(BuildContext context) async {
-    // showDialog(
-    //   context: context,
-    //   builder: (BuildContext context) {
-    //     return AlertDialog(
-    //       title: Text("Logout"),
-    //       content: Text("Are you sure you want to log out?"),
-    //       actions: [
-    //         TextButton(
-    //           child: Text("Cancel"),
-    //           onPressed: () {
-    //             Navigator.of(context).pop();
-    //           },
-    //         ),
-    //         TextButton(
-    //           child: Text("Logout"),
-    //           onPressed: () {
-    //             Navigator.of(context).pop();
-    //             Navigator.pushReplacementNamed(context, 'LoginPage'); // Adjust as per your routes
-    //           },
-    //         ),
-    //       ],
-    //     );
-    //   },
-    // );
-    // Logout function
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text("Logout"),
+          content: const Text("Are you sure you want to log out?"),
+          actions: [
+            TextButton(
+              child: const Text("Cancel"),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: const Text("Logout"),
+              onPressed: () async {
+                Navigator.of(context).pop(); // Close the dialog
 
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.clear();
+                // Clear shared preferences
+                final prefs = await SharedPreferences.getInstance();
+                await prefs.clear();
 
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => LoginPage()),
-      );
+                // Navigate to login page
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (context) => LoginPage()),
+                );
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 }

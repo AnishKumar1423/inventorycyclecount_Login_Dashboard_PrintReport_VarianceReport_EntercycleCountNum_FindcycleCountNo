@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
+import 'package:shared_preferences/shared_preferences.dart';
+
 class UpdateCycleCount extends StatefulWidget {
   @override
   _UpdateCycleCountState createState() => _UpdateCycleCountState();
@@ -22,14 +24,24 @@ class _UpdateCycleCountState extends State<UpdateCycleCount> {
       return;
     }
 
+    // Retrieve the stored username and password from SharedPreferences
+    final prefs = await SharedPreferences.getInstance();
+    String? username = prefs.getString('username');
+    String? password = prefs.getString('password');
+
+    if (username == null || password == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No credentials found. Please log in.')),
+      );
+      return;
+    }
+
     const String url =
         'http://192.168.0.36:7018/jderest/v3/orchestrator/ORCH_cycleCountUpdate';
 
     // Basic Authentication Credentials
-    const String authUsername = "JDE";
-    const String authPassword = "Local#123";
     String basicAuth =
-        'Basic ${base64Encode(utf8.encode('$authUsername:$authPassword'))}';
+        'Basic ${base64Encode(utf8.encode('$username:$password'))}';
 
     final headers = {
       'Authorization': basicAuth,
@@ -44,8 +56,7 @@ class _UpdateCycleCountState extends State<UpdateCycleCount> {
     print("Request Body: $body");
 
     try {
-      final response =
-      await http.post(Uri.parse(url), headers: headers, body: body);
+      final response = await http.post(Uri.parse(url), headers: headers, body: body);
       print("Response Status: ${response.statusCode}");
       print("Response Body: ${response.body}");
 
@@ -53,28 +64,36 @@ class _UpdateCycleCountState extends State<UpdateCycleCount> {
         try {
           final responseData = jsonDecode(response.body);
 
-          if (responseData.containsKey("ServiceRequest2")) {
-            final serviceRequest = responseData["ServiceRequest2"];
+          if (responseData.containsKey("ServiceRequest3")) {
+            final serviceRequest = responseData["ServiceRequest3"];
             final fsData = serviceRequest["fs_DATABROWSE_F4140"];
+
             if (fsData != null &&
                 fsData.containsKey("data") &&
                 fsData["data"].containsKey("gridData") &&
                 fsData["data"]["gridData"].containsKey("rowset") &&
                 fsData["data"]["gridData"]["rowset"].isNotEmpty) {
-              String cycleStatus =
-              fsData["data"]["gridData"]["rowset"][0]["F4140_CYCS"];
+              String cycleStatus = fsData["data"]["gridData"]["rowset"][0]["F4140_CYCS"];
 
-              String message;
-              if (cycleStatus == "40") {
-                message = 'Failed to update cycle count';
-              } else if (cycleStatus == "50") {
-                message = 'Successfully updated cycle count';
+
+              await Future.delayed(const Duration(seconds: 20)); // Random delay between 10 to 30 seconds
+              print("Delay to completed after 20 Second");
+
+              if (cycleStatus == "50") {
+                // If "50", show success
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Successfully updated cycle count')),
+                );
+              } else if (cycleStatus == "40") {
+                //If "40" , show failed
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Failed to update cycle count')),
+                );
               } else {
-                message = 'Unexpected status: $cycleStatus';
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Error: Unexpected cycle status: $cycleStatus')),
+                );
               }
-
-              ScaffoldMessenger.of(context)
-                  .showSnackBar(SnackBar(content: Text(message)));
             } else {
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(content: Text('Invalid response structure')),
@@ -102,15 +121,36 @@ class _UpdateCycleCountState extends State<UpdateCycleCount> {
     }
   }
 
+  // Function to show the DatePicker dialog and set the selected date in the text field
+  Future<void> _selectDate(BuildContext context) async {
+    DateTime initialDate = DateTime.now();
+    DateTime firstDate = DateTime(2000);
+    DateTime lastDate = DateTime(2101);
+
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: initialDate,
+      firstDate: firstDate,
+      lastDate: lastDate,
+    );
+
+    if (picked != null && picked != initialDate) {
+      setState(() {
+        // Format the date to MM/DD/YYYY format before setting it in the text field
+        _controller2.text = "${picked.month.toString().padLeft(2, '0')}/${picked.day.toString().padLeft(2, '0')}/${picked.year}";
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          'Update Cycle Count290',
+          'Update Cycle Count',
           style: TextStyle(color: Colors.white, fontSize: 20), // Customize text style
         ),
-        backgroundColor: Color(0xFF244e6f),
+        backgroundColor: const Color(0xFF244e6f),
         elevation: 4, // Adjust shadow
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white), // Set back button icon color to black
@@ -128,13 +168,13 @@ class _UpdateCycleCountState extends State<UpdateCycleCount> {
             decoration: BoxDecoration(
               color: Colors.white, // Inner container color
               borderRadius: BorderRadius.circular(12.0), // Rounded corners
-              border: Border.all(color: Color(0xFF244e6f), width: 2.0), // Outer border
+              border: Border.all(color: const Color(0xFF244e6f), width: 2.0), // Outer border
               boxShadow: [
                 BoxShadow(
                   color: Colors.grey.withOpacity(0.5),
                   spreadRadius: 3,
                   blurRadius: 5,
-                  offset: Offset(0, 3), // Shadow position
+                  offset: const Offset(0, 3), // Shadow position
                 ),
               ],
             ),
@@ -152,22 +192,31 @@ class _UpdateCycleCountState extends State<UpdateCycleCount> {
                     filled: true,
                   ),
                 ),
+
                 const SizedBox(height: 20),
                 TextField(
                   controller: _controller2,
                   keyboardType: TextInputType.datetime,
-                  decoration: const InputDecoration(
+                  readOnly: true, // Makes the TextField non-editable
+                  decoration: InputDecoration(
                     fillColor: Colors.white,
-                    labelText: 'GL Date(MM/DD/YYYY)',
-                    border: OutlineInputBorder(),
+                    labelText: 'GL Date',
+                    suffixIcon: IconButton(
+                      icon: const Icon(Icons.calendar_month),
+                      onPressed: () => _selectDate(context), // Open date picker when tapped
+                    ),
+                    border: const OutlineInputBorder(),
                     filled: true,
                   ),
                 ),
+
+
+
                 const SizedBox(height: 20), // Reduced space from 90 to 20
                 ElevatedButton(
                   onPressed: _submitReport,
                   style: ElevatedButton.styleFrom(
-                      primary: const Color(0xFF244e6f), // Set the background color
+                      backgroundColor: const Color(0xFF244e6f), // Set the background color
                       foregroundColor: Colors.white
                   ),
                   child: const Text('Submit'),

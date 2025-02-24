@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class PrintCycleCountReport extends StatefulWidget {
   const PrintCycleCountReport({super.key});
@@ -24,14 +25,23 @@ class _PrintCycleCountReportPageState
       return;
     }
 
+    // Retrieve the stored username and password from SharedPreferences
+    final prefs = await SharedPreferences.getInstance();
+    String? username = prefs.getString('username');
+    String? password = prefs.getString('password');
+
+    if (username == null || password == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No credentials found. Please log in.')),
+      );
+      return;
+    }
+
     String url =
         'http://192.168.0.36:7018/jderest/v3/orchestrator/ORCH_printCycleCount';
 
-    // Basic Authentication Credentials
-    String authUsername = "JDE";
-    String authPassword = "Local#123";
-    String basicAuth =
-        'Basic ${base64Encode(utf8.encode('$authUsername:$authPassword'))}';
+    // Use the retrieved credentials for Basic Authentication
+    String basicAuth = 'Basic ${base64Encode(utf8.encode('$username:$password'))}';
 
     final headers = {
       'Authorization': basicAuth,

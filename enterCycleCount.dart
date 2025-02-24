@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'enterQuantity.dart';
 
@@ -46,10 +47,22 @@ class _CycleCountNumberFindButtonState extends State<CycleCountNumberFindButton>
 
   // Function to fetch cycle count numbers for status "20" and "30"
   Future<void> findButton(BuildContext context) async {
+
+    // Retrieve the stored username and password from SharedPreferences
+    final prefs = await SharedPreferences.getInstance();
+    String? username = prefs.getString('username');
+    String? password = prefs.getString('password');
+
+    if (username == null || password == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No credentials found. Please log in.')),
+      );
+      return;
+    }
+
     String url = 'http://192.168.0.36:7018/jderest/v3/orchestrator/ORCH_GetDataF4140';
-    String authUsername = "JDE";
-    String authPassword = "Local#123";
-    String basicAuth = 'Basic ${base64Encode(utf8.encode('$authUsername:$authPassword'))}';
+  //Basic Authentication
+    String basicAuth = 'Basic ${base64Encode(utf8.encode('$username:$password'))}';
 
     List<int> allCycleNumbers = [];
 

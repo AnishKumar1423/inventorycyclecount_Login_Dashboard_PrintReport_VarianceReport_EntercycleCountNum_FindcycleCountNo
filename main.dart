@@ -11,26 +11,26 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: LoginPage(),
-     //  home: FutureBuilder<bool>(
-     //    future: checkSession(context),
-     //    builder: (context, snapshot) {
-     //      if (snapshot.connectionState == ConnectionState.waiting) {
-     //        return const Center(child: CircularProgressIndicator());
-     //      } else {
-     //        return snapshot.data == true ? const CycleCountDashboard() : const LoginPage();
-     //      }
-     //    },
-     //  ),
+     // home: LoginPage(),
+       home: FutureBuilder<bool>(
+         future: checkSession(context),
+         builder: (context, snapshot) {
+           if (snapshot.connectionState == ConnectionState.waiting) {
+             return const Center(child: CircularProgressIndicator());
+           } else {
+             return snapshot.data == true ? const CycleCountDashboard() : const LoginPage();
+           }
+         },
+       ),
     );
   }
 }
 
 // // Check if session exists
-// Future<bool> checkSession(BuildContext context) async {
-//   final prefs = await SharedPreferences.getInstance();
-//   return prefs.getString('username') != null && prefs.getString('password') != null;
-// }
+ Future<bool> checkSession(BuildContext context) async {
+   final prefs = await SharedPreferences.getInstance();
+   return prefs.getString('username') != null && prefs.getString('password') != null;
+ }
 
 class LoginPage extends StatelessWidget {
   const LoginPage({super.key});
@@ -83,9 +83,14 @@ class Header extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: <Widget>[
-          Image.asset(
+           Image.asset(
             'assets/image/Anish.png',
             fit: BoxFit.contain,
+          ),
+          const Text(
+            "JD Edwards EnterpriseOne",
+            style: TextStyle(color: Colors.white, fontSize: 18),
+            textAlign: TextAlign.center,
           ),
           const Text(
             "Inventory Cycle Count",
@@ -131,12 +136,15 @@ class InputWrapper extends StatelessWidget {
   }
 }
 
-class InputField extends StatelessWidget {
+class InputField extends StatefulWidget {
   final TextEditingController usernameController;
   final TextEditingController passwordController;
-
   const InputField({required this.usernameController, required this.passwordController});
-
+  @override
+  _InputFieldState createState() => _InputFieldState();
+}
+bool _obscureText = true;
+class _InputFieldState extends State<InputField> {
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -147,11 +155,15 @@ class InputField extends StatelessWidget {
             border: Border(bottom: BorderSide(color: Colors.grey)),
           ),
           child: TextField(
-            controller: usernameController,
+            controller: widget.usernameController,
             decoration: const InputDecoration(
               hintText: "Username",
               hintStyle: TextStyle(color: Colors.grey),
               border: InputBorder.none,
+              suffixIcon: Icon(
+                Icons.person,  // User icon
+                color: Colors.grey,
+              ),
             ),
           ),
         ),
@@ -161,13 +173,21 @@ class InputField extends StatelessWidget {
             border: Border(bottom: BorderSide(color: Colors.grey)),
           ),
           child: TextField(
-            controller: passwordController,
-            decoration: const InputDecoration(
+            controller: widget.passwordController,
+            obscureText: _obscureText,
+            decoration: InputDecoration(
               hintText: "Password",
-              hintStyle: TextStyle(color: Colors.grey),
+              hintStyle: const TextStyle(color: Colors.grey),
               border: InputBorder.none,
+              suffixIcon: IconButton(
+                icon: Icon(_obscureText ? Icons.visibility_off : Icons.visibility),
+                onPressed: () {
+                  setState(() {
+                    _obscureText = !_obscureText;
+                  });
+                },
+              ),
             ),
-            obscureText: true,
           ),
         ),
       ],
@@ -180,6 +200,13 @@ class Button extends StatelessWidget {
   final TextEditingController passwordController;
 
   Button({required this.usernameController, required this.passwordController});
+
+  //the saveUserSession function saves their username and password in shared preferences:
+  Future<void> saveUserSession(String username, String password) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('username', username);
+    await prefs.setString('password', password);
+  }
 
   Future<void> login(BuildContext context) async {
     String username = usernameController.text.trim();
@@ -196,7 +223,6 @@ class Button extends StatelessWidget {
 
     // Use the user-entered credentials for authentication
     String basicAuth = 'Basic ${base64Encode(utf8.encode('$username:$password'))}';
-
 
     try {
       print("Sending GET request to: $url?username=$username&password=$password");
@@ -245,6 +271,9 @@ class Button extends StatelessWidget {
           }
 
           if (apiUsername == username && apiPassword == password) {
+            //
+            await saveUserSession(username, password);
+
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(content: Text("Login Success")),
             );
@@ -301,7 +330,7 @@ class Button extends StatelessWidget {
         ),
         child: const Center(
           child: Text(
-            "Login",
+            "SIGN IN",
             style: TextStyle(
               color: Colors.white,
               fontSize: 23,

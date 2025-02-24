@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
+import 'package:shared_preferences/shared_preferences.dart';
+
 class ApproveCycleCount extends StatefulWidget {
   @override
   _PrintCycleCountReportPageState createState() => _PrintCycleCountReportPageState();
@@ -21,14 +23,24 @@ class _PrintCycleCountReportPageState extends State<ApproveCycleCount> {
       return;
     }
 
+    // Retrieve the stored username and password from SharedPreferences
+    final prefs = await SharedPreferences.getInstance();
+    String? username = prefs.getString('username');
+    String? password = prefs.getString('password');
+
+    if (username == null || password == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No credentials found. Please log in.')),
+      );
+      return;
+    }
+
     String url =
         'http://192.168.0.36:7018/jderest/v3/orchestrator/ORCH_ApproveCycleCount';
 
     // Basic Authentication Credentials
-    String authUsername = "JDE";
-    String authPassword = "Local#123";
     String basicAuth =
-        'Basic ${base64Encode(utf8.encode('$authUsername:$authPassword'))}';
+        'Basic ${base64Encode(utf8.encode('$username:$password'))}';
 
     final headers = {
       'Authorization': basicAuth,
@@ -73,14 +85,24 @@ class _PrintCycleCountReportPageState extends State<ApproveCycleCount> {
       return;
     }
 
+    // Retrieve the stored username and password from SharedPreferences
+    final prefs = await SharedPreferences.getInstance();
+    String? username = prefs.getString('username');
+    String? password = prefs.getString('password');
+
+    if (username == null || password == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No credentials found. Please log in.')),
+      );
+      return;
+    }
+
     String url =
         'http://192.168.0.36:7018/jderest/v3/orchestrator/ORCH_cancelCycleCount';
 
     // Basic Authentication Credentials
-    String authUsername = "ANISHKT";
-    String authPassword = "Kirti@321";
     String basicAuth =
-        'Basic ${base64Encode(utf8.encode('$authUsername:$authPassword'))}';
+        'Basic ${base64Encode(utf8.encode('$username:$password'))}';
 
     final headers = {
       'Authorization': basicAuth,

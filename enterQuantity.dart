@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 class EnterCycleQuantityNumber extends StatefulWidget {
   final int selectedCycle;
@@ -31,13 +32,25 @@ class _EnterQuantityState extends State<EnterCycleQuantityNumber> {
   }
 
   Future<void> fetchData() async {
+
+    // Retrieve the stored username and password from SharedPreferences
+    final prefs = await SharedPreferences.getInstance();
+    String? username = prefs.getString('username');
+    String? password = prefs.getString('password');
+
+    if (username == null || password == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No credentials found. Please log in.')),
+      );
+      return;
+    }
+
     String url =
         'http://192.168.0.36:7018/jderest/v3/orchestrator/ORCH_gettingDataFromF4141';
 
-    String authUsername = "ANISHKT";
-    String authPassword = "Kirti@321";
+    //Basic Authentication
     String basicAuth =
-        'Basic ${base64Encode(utf8.encode('$authUsername:$authPassword'))}';
+        'Basic ${base64Encode(utf8.encode('$username:$password'))}';
 
     Map<String, dynamic> requestBody = {
       "Cycle Number 1": widget.selectedCycle.toString(),
@@ -119,14 +132,27 @@ class _EnterQuantityState extends State<EnterCycleQuantityNumber> {
 
 
   Future<void> submitQuantity(int index) async {
+
+    // Retrieve the stored username and password from SharedPreferences
+    final prefs = await SharedPreferences.getInstance();
+    String? username = prefs.getString('username');
+    String? password = prefs.getString('password');
+
+    if (username == null || password == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No credentials found. Please log in.')),
+      );
+      return;
+    }
+
     String url =
         'http://192.168.0.36:7018/jderest/v3/orchestrator/ORCH_enterQuantityP41240';
     String enteredQty = qtyControllers[index]?.text ?? '';
 
-    String authUsername = "ANISHKT";
-    String authPassword = "Kirti@321";
+  //Basic Authentication
+
     String basicAuth =
-        'Basic ${base64Encode(utf8.encode('$authUsername:$authPassword'))}';
+        'Basic ${base64Encode(utf8.encode('$username:$password'))}';
 
     var item = filteredData[index];
     String originalQuantity = item['Entered Quantity']; // Save original quantity
