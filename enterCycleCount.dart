@@ -59,8 +59,19 @@ class _CycleCountNumberFindButtonState extends State<CycleCountNumberFindButton>
       );
       return;
     }
+// Retrieve the server URL from SharedPreferences
+    final prefs1 = await SharedPreferences.getInstance();
+    String? serverUrl = prefs1.getString('serverUrl');
 
-    String url = 'http://192.168.0.36:7018/jderest/v3/orchestrator/ORCH_GetDataF4140';
+    if (serverUrl == null || serverUrl.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Server URL not configured")),
+      );
+      return;
+    }
+
+    String url =
+        'http://$serverUrl/jderest/v3/orchestrator/ORCH_GetDataF4140';
   //Basic Authentication
     String basicAuth = 'Basic ${base64Encode(utf8.encode('$username:$password'))}';
 

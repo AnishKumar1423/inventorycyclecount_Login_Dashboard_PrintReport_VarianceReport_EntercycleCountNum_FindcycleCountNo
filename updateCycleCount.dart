@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-
+import 'dart:async';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class UpdateCycleCount extends StatefulWidget {
@@ -12,6 +12,9 @@ class UpdateCycleCount extends StatefulWidget {
 class _UpdateCycleCountState extends State<UpdateCycleCount> {
   final TextEditingController _controller1 = TextEditingController();
   final TextEditingController _controller2 = TextEditingController();
+  Timer? _timer;
+  int _remainingTime = 0; // To track the countdown
+  bool _isSubmitting = false; // To disable the button while waiting
 
   Future<void> _submitReport() async {
     String cycleCountNumber = _controller1.text.trim();
@@ -24,7 +27,6 @@ class _UpdateCycleCountState extends State<UpdateCycleCount> {
       return;
     }
 
-    // Retrieve the stored username and password from SharedPreferences
     final prefs = await SharedPreferences.getInstance();
     String? username = prefs.getString('username');
     String? password = prefs.getString('password');
@@ -36,10 +38,20 @@ class _UpdateCycleCountState extends State<UpdateCycleCount> {
       return;
     }
 
-    const String url =
-        'http://192.168.0.36:7018/jderest/v3/orchestrator/ORCH_cycleCountUpdate';
+    // Retrieve the server URL from SharedPreferences
+    final prefs1 = await SharedPreferences.getInstance();
+    String? serverUrl = prefs1.getString('serverUrl');
 
-    // Basic Authentication Credentials
+    if (serverUrl == null || serverUrl.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Server URL not configured")),
+      );
+      return;
+    }
+
+    String url =
+        'http://$serverUrl/jderest/v3/orchestrator/ORCH_cycleCountUpdate';
+
     String basicAuth =
         'Basic ${base64Encode(utf8.encode('$username:$password'))}';
 
@@ -56,6 +68,25 @@ class _UpdateCycleCountState extends State<UpdateCycleCount> {
     print("Request Body: $body");
 
     try {
+      setState(() {
+        _isSubmitting = true; // Disable submit button
+        _remainingTime = 20; // Start 20 sec countdown
+      });
+
+      // Start the countdown timer
+      _timer = Timer.periodic(Duration(seconds: 1), (timer) {
+        if (_remainingTime > 0) {
+          setState(() {
+            _remainingTime--;
+          });
+        } else {
+          _timer?.cancel();
+          setState(() {
+            _isSubmitting = false; // Re-enable the button after 20 seconds
+          });
+        }
+      });
+
       final response = await http.post(Uri.parse(url), headers: headers, body: body);
       print("Response Status: ${response.statusCode}");
       print("Response Body: ${response.body}");
@@ -63,7 +94,6 @@ class _UpdateCycleCountState extends State<UpdateCycleCount> {
       if (response.statusCode == 200) {
         try {
           final responseData = jsonDecode(response.body);
-
           if (responseData.containsKey("ServiceRequest3")) {
             final serviceRequest = responseData["ServiceRequest3"];
             final fsData = serviceRequest["fs_DATABROWSE_F4140"];
@@ -75,17 +105,11 @@ class _UpdateCycleCountState extends State<UpdateCycleCount> {
                 fsData["data"]["gridData"]["rowset"].isNotEmpty) {
               String cycleStatus = fsData["data"]["gridData"]["rowset"][0]["F4140_CYCS"];
 
-
-              await Future.delayed(const Duration(seconds: 20)); // Random delay between 10 to 30 seconds
-              print("Delay to completed after 20 Second");
-
               if (cycleStatus == "50") {
-                // If "50", show success
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(content: Text('Successfully updated cycle count')),
                 );
               } else if (cycleStatus == "40") {
-                //If "40" , show failed
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(content: Text('Failed to update cycle count')),
                 );
@@ -121,7 +145,6 @@ class _UpdateCycleCountState extends State<UpdateCycleCount> {
     }
   }
 
-  // Function to show the DatePicker dialog and set the selected date in the text field
   Future<void> _selectDate(BuildContext context) async {
     DateTime initialDate = DateTime.now();
     DateTime firstDate = DateTime(2000);
@@ -136,10 +159,15 @@ class _UpdateCycleCountState extends State<UpdateCycleCount> {
 
     if (picked != null && picked != initialDate) {
       setState(() {
-        // Format the date to MM/DD/YYYY format before setting it in the text field
         _controller2.text = "${picked.month.toString().padLeft(2, '0')}/${picked.day.toString().padLeft(2, '0')}/${picked.year}";
       });
     }
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel(); // Cancel timer when screen is disposed
+    super.dispose();
   }
 
   @override
@@ -148,40 +176,40 @@ class _UpdateCycleCountState extends State<UpdateCycleCount> {
       appBar: AppBar(
         title: const Text(
           'Update Cycle Count',
-          style: TextStyle(color: Colors.white, fontSize: 20), // Customize text style
+          style: TextStyle(color: Colors.white, fontSize: 20),
         ),
         backgroundColor: const Color(0xFF244e6f),
-        elevation: 4, // Adjust shadow
+        elevation: 4,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white), // Set back button icon color to black
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () {
-            Navigator.pop(context); // Go back to the previous screen
+            Navigator.pop(context);
           },
         ),
       ),
       body: Container(
-        color: Colors.white, // Background color
+        color: Colors.white,
         padding: const EdgeInsets.all(16.0),
         child: Center(
           child: Container(
             padding: const EdgeInsets.all(16.0),
             decoration: BoxDecoration(
-              color: Colors.white, // Inner container color
-              borderRadius: BorderRadius.circular(12.0), // Rounded corners
-              border: Border.all(color: const Color(0xFF244e6f), width: 2.0), // Outer border
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12.0),
+              border: Border.all(color: const Color(0xFF244e6f), width: 2.0),
               boxShadow: [
                 BoxShadow(
                   color: Colors.grey.withOpacity(0.5),
                   spreadRadius: 3,
                   blurRadius: 5,
-                  offset: const Offset(0, 3), // Shadow position
+                  offset: const Offset(0, 3),
                 ),
               ],
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const SizedBox(height: 70), // Reduced space from 100 to 20
+                const SizedBox(height: 45),
                 TextField(
                   controller: _controller1,
                   keyboardType: TextInputType.number,
@@ -192,36 +220,33 @@ class _UpdateCycleCountState extends State<UpdateCycleCount> {
                     filled: true,
                   ),
                 ),
-
                 const SizedBox(height: 20),
                 TextField(
                   controller: _controller2,
                   keyboardType: TextInputType.datetime,
-                  readOnly: true, // Makes the TextField non-editable
+                  readOnly: true,
                   decoration: InputDecoration(
                     fillColor: Colors.white,
                     labelText: 'GL Date',
                     suffixIcon: IconButton(
                       icon: const Icon(Icons.calendar_month),
-                      onPressed: () => _selectDate(context), // Open date picker when tapped
+                      onPressed: () => _selectDate(context),
                     ),
                     border: const OutlineInputBorder(),
                     filled: true,
                   ),
                 ),
-
-
-
-                const SizedBox(height: 20), // Reduced space from 90 to 20
-                ElevatedButton(
+                const SizedBox(height: 20),
+                _isSubmitting
+                    ? Text("Please wait $_remainingTime sec", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold))
+                    : ElevatedButton(
                   onPressed: _submitReport,
                   style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF244e6f), // Set the background color
-                      foregroundColor: Colors.white
-                  ),
+                      backgroundColor: const Color(0xFF244e6f),
+                      foregroundColor: Colors.white),
                   child: const Text('Submit'),
                 ),
-                const SizedBox(height: 50), // Reduced space from 90 to 20
+                const SizedBox(height: 50),
               ],
             ),
           ),

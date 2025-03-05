@@ -144,7 +144,7 @@ class CycleCountDashboard extends StatelessWidget {
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text("Logout"),
-          content: const Text("Are you sure you want to log out?"),
+          content: const Text("Are you sure you want to logout?"),
           actions: [
             TextButton(
               child: const Text("Cancel"),
@@ -159,13 +159,20 @@ class CycleCountDashboard extends StatelessWidget {
 
                 // Clear shared preferences
                 final prefs = await SharedPreferences.getInstance();
-                await prefs.clear();
+                //await prefs.clear();
+                await prefs.remove('username'); // Remove saved username
+                await prefs.remove('password'); // Remove saved password
+                // await prefs.remove('serverUrl'); // Remove server URL
 
                 // Navigate to login page
                 Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(builder: (context) => LoginPage()),
                 );
+                // Navigator.pushReplacement(
+                //   context,
+                //   MaterialPageRoute(builder: (context) => ServerConfigPage()),
+                // );
               },
             ),
           ],

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ReviewsCycleCountStatus extends StatefulWidget {
@@ -11,6 +10,7 @@ class ReviewsCycleCountStatus extends StatefulWidget {
   _ReviewsCycleCountStatusState createState() =>
       _ReviewsCycleCountStatusState();
 }
+
 
 class _ReviewsCycleCountStatusState extends State<ReviewsCycleCountStatus> {
   final TextEditingController _cycleStatusFromController =
@@ -23,6 +23,21 @@ class _ReviewsCycleCountStatusState extends State<ReviewsCycleCountStatus> {
   List<dynamic> apiData = [];
   List<dynamic> filteredData = [];
 
+  @override
+  void initState() {
+    super.initState();
+
+    // Set default values
+    _cycleStatusFromController.text = "10";
+    _thruCycleStatusController.text = "60";
+
+    // Auto-fetch data after the screen builds
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _submitReport();
+    });
+  }
+
+
   Future<void> _submitReport() async {
     String cycleStatusFrom = _cycleStatusFromController.text;
     String thruCycleStatus = _thruCycleStatusController.text;
@@ -34,10 +49,10 @@ class _ReviewsCycleCountStatusState extends State<ReviewsCycleCountStatus> {
       return;
     }
 
-    // Retrieve the stored username and password from SharedPreferences
     final prefs = await SharedPreferences.getInstance();
     String? username = prefs.getString('username');
     String? password = prefs.getString('password');
+    String? serverUrl = prefs.getString('serverUrl');
 
     if (username == null || password == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -46,10 +61,15 @@ class _ReviewsCycleCountStatusState extends State<ReviewsCycleCountStatus> {
       return;
     }
 
-    String url =
-        'http://192.168.0.36:7018/jderest/v3/orchestrator/ORCH_reviewCycleCount';
+    if (serverUrl == null || serverUrl.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Server URL not configured")),
+      );
+      return;
+    }
 
-    // Basic Authentication Credentials
+    String url =
+        'http://$serverUrl/jderest/v3/orchestrator/ORCH_reviewCycleCount';
     String basicAuth =
         'Basic ${base64Encode(utf8.encode('$username:$password'))}';
 
@@ -76,15 +96,15 @@ class _ReviewsCycleCountStatusState extends State<ReviewsCycleCountStatus> {
 
         setState(() {
           apiData = responseData["FREQ_reviewCycleCount_1"] ?? [];
-          filteredData = List.from(apiData); // Initially, no filter applied
+          filteredData = List.from(apiData);
         });
 
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Show Status')),
+          const SnackBar(content: Text('Data Loaded Successfully')),
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Error')),
+          const SnackBar(content: Text('Error fetching data')),
         );
       }
     } catch (e) {
@@ -96,7 +116,6 @@ class _ReviewsCycleCountStatusState extends State<ReviewsCycleCountStatus> {
 
   void _filterData() {
     String cycleNoFilter = _cycleNoFilterController.text.trim().toLowerCase();
-
     setState(() {
       filteredData = apiData.where((item) {
         String cycleNumber = item["Cycle Number"].toString().toLowerCase();
@@ -105,161 +124,118 @@ class _ReviewsCycleCountStatusState extends State<ReviewsCycleCountStatus> {
     });
   }
 
+  Widget _buildTextField(TextEditingController controller, String labelText,
+      {Function(String)? onChanged}) {
+    return SizedBox(
+      width: labelText == 'Find Cycle Count No' ? 260 : 120, // Increased width
+      height: 40,
+      child: TextField(
+        controller: controller,
+        decoration: InputDecoration(
+          fillColor: Colors.white,
+          labelText: labelText,
+          border: const OutlineInputBorder(),
+          filled: true,
+        ),
+        onChanged: onChanged,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'Reviews Cycle Count',
-          style: TextStyle(color: Colors.white, fontSize: 20), // Customize text style
-        ),
-        backgroundColor: Color(0xFF244e6f),
-        elevation: 4, // Adjust shadow
+        title: const Text('Reviews Cycle Count',
+            style: TextStyle(color: Colors.white, fontSize: 20)),
+        backgroundColor: const Color(0xFF244e6f),
+        elevation: 4,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white), // Set back button icon color to black
-          onPressed: () {
-            Navigator.pop(context); // Go back to the previous screen
-          },
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => Navigator.pop(context),
         ),
       ),
-
       body: Padding(
         padding: const EdgeInsets.all(8.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Row for From Status, Thru Status, and Find button
+            // Status Input Row
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Container(
-                  width: 120, // Adjust width for "From Status"
-                  child: TextField(
-                    controller: _cycleStatusFromController,
-                    decoration: const InputDecoration(
-                      fillColor: Colors.white,
-                      labelText: 'From Status',
-                      border: OutlineInputBorder(),
-                      filled: true,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Container(
-                  width: 120, // Adjust width for "Thru Status"
-                  child: TextField(
-                    controller: _thruCycleStatusController,
-                    decoration: const InputDecoration(
-                      fillColor: Colors.white,
-                      labelText: 'Thru Status',
-                      border: OutlineInputBorder(),
-                      filled: true,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 10),
+                _buildTextField(_cycleStatusFromController, 'From Status'),
+                _buildTextField(_thruCycleStatusController, 'Thru Status'),
                 ElevatedButton(
                   onPressed: _submitReport,
-                  child: const Padding(
-                    padding: EdgeInsets.symmetric(
-                        vertical: 15.0, horizontal: 10.0),
-                    child: Icon(Icons.search),
-                  ),
+                  child: const Icon(Icons.search, size: 20.0),
                 ),
               ],
             ),
             const SizedBox(height: 10),
 
-            // Filter TextField below
+            // Find Cycle Count No Field
             Row(
               children: [
-                Container(
-                  width: 275,
-                  height: 40,
-                  padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                  child: TextField(
-                    controller: _cycleNoFilterController,
-                    decoration: const InputDecoration(
-                      fillColor: Colors.white,
-                      labelText: 'Find Cycle No',
-                      border: OutlineInputBorder(),
-                      filled: true,
-                    ),
-                    onChanged: (value) => _filterData(),
-                    style: const TextStyle(fontSize: 12),
-                    maxLines: 1,
-                  ),
-                ),
-                const SizedBox(width: 10),
-                const Text(
-                  'Filter', // The text added in front of the input field
-                  style: TextStyle(fontSize: 14),
+                _buildTextField(
+                  _cycleNoFilterController,
+                  'Find Cycle Count No',
+                  onChanged: (value) => _filterData(),
                 ),
               ],
             ),
             const SizedBox(height: 10),
 
-            // Scrollable Table UI with alternating row colors and centered headers
+            // Scrollable Table UI
             filteredData.isNotEmpty
                 ? Expanded(
               child: SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 child: SingleChildScrollView(
-                  scrollDirection: Axis.vertical, // Vertical scrolling
+                  scrollDirection: Axis.vertical,
                   child: DataTable(
-                    columnSpacing: 8, // Reduced space between columns
-                    dataRowMinHeight: 30, // Minimum row height
-                    dataRowMaxHeight: 40, // Maximum row height
+                    columnSpacing: 8,
+                    dataRowMinHeight: 30,
+                    dataRowMaxHeight: 40,
                     border: TableBorder.all(color: Colors.grey),
                     headingRowColor: MaterialStateProperty.resolveWith(
-                            (states) => Color(0xFF244e6f),), // Header background color
+                          (states) => const Color(0xFF244e6f),
+                    ),
                     columns: const [
                       DataColumn(
-                        label: Center(
-                          child: Text(
-                            'Cycle No',
-                            style: TextStyle(
+                        label: Text(
+                          'Cycle No',
+                          style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
-                          ),
+                              color: Colors.white),
                         ),
                       ),
                       DataColumn(
-                        label: Center(
-                          child: Text(
-                            'Description',
-                            style: TextStyle(
+                        label: Text(
+                          'Description',
+                          style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
-                          ),
+                              color: Colors.white),
                         ),
                       ),
                       DataColumn(
-                        label: Center(
-                          child: Text(
-                            'Status',
-                            style: TextStyle(
+                        label: Text(
+                          'Status',
+                          style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
-                          ),
+                              color: Colors.white),
                         ),
                       ),
                       DataColumn(
-                        label: Center(
-                          child: Text(
-                            'Count Date',
-                            style: TextStyle(
+                        label: Text(
+                          'Count Date',
+                          style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
-                          ),
+                              color: Colors.white),
                         ),
                       ),
                     ],
@@ -269,58 +245,28 @@ class _ReviewsCycleCountStatusState extends State<ReviewsCycleCountStatus> {
                           return DataRow(
                             color: MaterialStateProperty.resolveWith<Color>(
                                   (Set<MaterialState> states) {
-                                // Alternating row colors
                                 return index % 2 == 0
                                     ? Colors.white
                                     : Colors.grey[200]!;
                               },
                             ),
                             cells: [
-                              DataCell(Container(
-                                width: 30, // Fixed width for the 'Cycle No' column
-                                alignment: Alignment.center,
-                                child: Text(item["Cycle Number"].toString(),
-                                    textAlign: TextAlign.center,
-                                    style: const TextStyle(fontSize: 12)),
+                              DataCell(Text(item["Cycle Number"].toString())),
+                              DataCell(Text(
+                                item["Description"]?.toString() ?? 'N/A',
+                                maxLines: 1,
                               )),
-                              DataCell(Container(
-                                width: 170, // Fixed width for the 'Description' column
-                                alignment: Alignment.center,
-                                child: Text(
-                                  item["Description"]
-                                      ?.toString()
-                                      .isNotEmpty ==
-                                      true
-                                      ? item["Description"].toString()
-                                      : 'N/A', // Placeholder for empty descriptions
-                                  textAlign: TextAlign.center,
-                                  style: const TextStyle(fontSize: 12),
-                                  maxLines: 1, // Avoid content overflow
-                                ),
-                              )),
-                              DataCell(Container(
-                                width: 40, // Fixed width for the 'Status' column
-                                alignment: Alignment.center,
-                                child: Text(item["Cycle Status"].toString(),
-                                    textAlign: TextAlign.center,
-                                    style: const TextStyle(fontSize: 12)),
-                              )),
-                              DataCell(Container(
-                                width: 65, // Fixed width for the 'Count Date' column
-                                alignment: Alignment.center,
-                                child: Text(item["Count Date"].toString(),
-                                    textAlign: TextAlign.center,
-                                    style: const TextStyle(fontSize: 12)),
-                              )),
+                              DataCell(
+                                  Text(item["Cycle Status"].toString())),
+                              DataCell(Text(item["Count Date"].toString())),
                             ],
                           );
-                        }
-                        ),
+                        }),
                   ),
                 ),
               ),
-            ) :
-            const Center(child: CircularProgressIndicator()),
+            )
+                : const Center(child: CircularProgressIndicator()),
           ],
         ),
       ),

@@ -44,9 +44,19 @@ class _EnterQuantityState extends State<EnterCycleQuantityNumber> {
       );
       return;
     }
+// Retrieve the server URL from SharedPreferences
+    final prefs1 = await SharedPreferences.getInstance();
+    String? serverUrl = prefs1.getString('serverUrl');
+
+    if (serverUrl == null || serverUrl.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Server URL not configured")),
+      );
+      return;
+    }
 
     String url =
-        'http://192.168.0.36:7018/jderest/v3/orchestrator/ORCH_gettingDataFromF4141';
+        'http://$serverUrl/jderest/v3/orchestrator/ORCH_gettingDataFromF4141';
 
     //Basic Authentication
     String basicAuth =
@@ -145,8 +155,19 @@ class _EnterQuantityState extends State<EnterCycleQuantityNumber> {
       return;
     }
 
+// Retrieve the server URL from SharedPreferences
+    final prefs1 = await SharedPreferences.getInstance();
+    String? serverUrl = prefs1.getString('serverUrl');
+
+    if (serverUrl == null || serverUrl.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Server URL not configured")),
+      );
+      return;
+    }
+
     String url =
-        'http://192.168.0.36:7018/jderest/v3/orchestrator/ORCH_enterQuantityP41240';
+        'http://$serverUrl/jderest/v3/orchestrator/ORCH_enterQuantityP41240';
     String enteredQty = qtyControllers[index]?.text ?? '';
 
   //Basic Authentication

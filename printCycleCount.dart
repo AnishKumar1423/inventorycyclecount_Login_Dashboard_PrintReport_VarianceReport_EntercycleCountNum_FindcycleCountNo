@@ -36,9 +36,19 @@ class _PrintCycleCountReportPageState
       );
       return;
     }
+// Retrieve the server URL from SharedPreferences
+    final prefs1 = await SharedPreferences.getInstance();
+    String? serverUrl = prefs1.getString('serverUrl');
+
+    if (serverUrl == null || serverUrl.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Server URL not configured")),
+      );
+      return;
+    }
 
     String url =
-        'http://192.168.0.36:7018/jderest/v3/orchestrator/ORCH_printCycleCount';
+        'http://$serverUrl/jderest/v3/orchestrator/ORCH_printCycleCount';
 
     // Use the retrieved credentials for Basic Authentication
     String basicAuth = 'Basic ${base64Encode(utf8.encode('$username:$password'))}';
@@ -55,17 +65,28 @@ class _PrintCycleCountReportPageState
     print("Request Body: $body");
 
     try {
-      final response = await http.post(Uri.parse(url), headers: headers, body: body);
-      print("Response Status: ${response.statusCode}");
-      print("Response Body: ${response.body}");
+      // Create a request object
+      final uri = Uri.parse(url);
+      final request = http.Request('POST', uri)
+        ..headers.addAll(headers)  // Add headers
+        ..body = body;  // Add body
 
-      if (response.statusCode == 200) {
+      // Send the request and get the response
+      final response = await request.send();
+
+      // Convert the StreamedResponse to a regular Response
+      final responseData = await http.Response.fromStream(response);
+
+      print("Response Status: ${responseData.statusCode}");
+      print("Response Body: ${responseData.body}");
+
+      if (responseData.statusCode == 200) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Successfully submitted report')),
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Report submission failed: ${response.body}')),
+          SnackBar(content: Text('Report submission failed: ${responseData.body}')),
         );
       }
     } catch (e) {

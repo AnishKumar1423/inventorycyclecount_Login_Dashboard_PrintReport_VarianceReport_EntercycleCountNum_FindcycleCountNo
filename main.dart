@@ -11,29 +11,49 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-     // home: LoginPage(),
-       home: FutureBuilder<bool>(
-         future: checkSession(context),
-         builder: (context, snapshot) {
-           if (snapshot.connectionState == ConnectionState.waiting) {
-             return const Center(child: CircularProgressIndicator());
-           } else {
-             return snapshot.data == true ? const CycleCountDashboard() : const LoginPage();
-           }
-         },
-       ),
+      home: FutureBuilder<String?>(
+        future: checkServerUrl(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          } else {
+            if (snapshot.data == null) {
+              return ServerConfigPage();
+            } else {
+              // Proceed to check session
+              return FutureBuilder<bool>(
+                future: checkSession(context),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  } else {
+                    return snapshot.data == true ? const CycleCountDashboard() : const LoginPage();
+                  }
+                },
+              );
+            }
+          }
+        },
+      ),
     );
+  }
+
+  Future<String?> checkServerUrl() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString('serverUrl');
+  }
+
+  Future<bool> checkSession(BuildContext context) async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString('username') != null && prefs.getString('password') != null;
   }
 }
 
-// // Check if session exists
- Future<bool> checkSession(BuildContext context) async {
-   final prefs = await SharedPreferences.getInstance();
-   return prefs.getString('username') != null && prefs.getString('password') != null;
- }
+// Server Configuration Page
+class ServerConfigPage extends StatelessWidget {
+  final TextEditingController serverUrlController = TextEditingController();
 
-class LoginPage extends StatelessWidget {
-  const LoginPage({super.key});
+  ServerConfigPage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -56,11 +76,135 @@ class LoginPage extends StatelessWidget {
             Header(),
             Expanded(
               child: Container(
+                padding: const EdgeInsets.all(30),
                 decoration: const BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(60),
-                    topRight: Radius.circular(60),
+                    topLeft: Radius.circular(50),
+                    topRight: Radius.circular(50),
+                  ),
+                ),
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Text(
+                        "AIS Server Manager",
+                        style: TextStyle(
+                          color: Color(0xFF244e6f),
+                          fontSize: 20,
+                        ),
+                      ),
+                      const SizedBox(height: 5),
+                      const Icon(Icons.settings, size: 60, color: Color(0xFF244e6f)),
+                      const SizedBox(height: 5),
+                      TextField(
+                        controller: serverUrlController,
+                        decoration: InputDecoration(
+                          filled: true,
+                          fillColor: Colors.grey[200],
+                          labelText: 'Enter Server URL',
+                          hintText: '103.41.100.86:7018',
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF244e6f),
+                          padding: const EdgeInsets.symmetric(horizontal: 80, vertical: 10),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                        onPressed: () async {
+                          String url = serverUrlController.text.trim();
+                          if (url.isEmpty) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Please enter a URL')),
+                            );
+                            return;
+                          }
+
+                          // Save only the server URL without clearing other preferences
+                          final prefs = await SharedPreferences.getInstance();
+                          await prefs.setString('serverUrl', url);
+
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Server URL saved successfully')),
+                          );
+
+                          // Restart the app to apply the new server URL
+                          Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => MyApp()));
+                        },
+
+
+                        child: const Text(
+                          "GO",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 23,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// Login Page
+class LoginPage extends StatelessWidget {
+  const LoginPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: const Color(0xFF244e6f),
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.exit_to_app, color: Colors.white), // Exit icon
+          onPressed: () {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => ServerConfigPage()),
+            );
+          },
+        ),
+      ),
+      body: Container(
+        width: double.infinity,
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            colors: [
+              Color(0xFF244e6f),
+              Color(0xFF244e6f),
+              Color(0xFF244e6f),
+            ],
+          ),
+        ),
+        child: Column(
+          children: <Widget>[
+            const SizedBox(height: 10),
+            Header(),
+            Expanded(
+              child: Container(
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(50),
+                    topRight: Radius.circular(50),
                   ),
                 ),
                 child: SingleChildScrollView(
@@ -75,26 +219,27 @@ class LoginPage extends StatelessWidget {
   }
 }
 
+// Header widget for login
 class Header extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(5),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: <Widget>[
-           Image.asset(
+          Image.asset(
             'assets/image/Anish.png',
             fit: BoxFit.contain,
           ),
           const Text(
             "JD Edwards EnterpriseOne",
-            style: TextStyle(color: Colors.white, fontSize: 18),
+            style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
             textAlign: TextAlign.center,
           ),
           const Text(
             "Inventory Cycle Count",
-            style: TextStyle(color: Colors.white, fontSize: 18),
+            style: TextStyle(color: Colors.white, fontSize: 16),
             textAlign: TextAlign.center,
           ),
         ],
@@ -103,6 +248,7 @@ class Header extends StatelessWidget {
   }
 }
 
+// InputWrapper for username and password fields
 class InputWrapper extends StatelessWidget {
   final TextEditingController usernameController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
@@ -136,14 +282,18 @@ class InputWrapper extends StatelessWidget {
   }
 }
 
+// InputField for username and password TextField
 class InputField extends StatefulWidget {
   final TextEditingController usernameController;
   final TextEditingController passwordController;
   const InputField({required this.usernameController, required this.passwordController});
+
   @override
   _InputFieldState createState() => _InputFieldState();
 }
+
 bool _obscureText = true;
+
 class _InputFieldState extends State<InputField> {
   @override
   Widget build(BuildContext context) {
@@ -195,13 +345,14 @@ class _InputFieldState extends State<InputField> {
   }
 }
 
+// Button for the login process
 class Button extends StatelessWidget {
   final TextEditingController usernameController;
   final TextEditingController passwordController;
 
   Button({required this.usernameController, required this.passwordController});
 
-  //the saveUserSession function saves their username and password in shared preferences:
+  // Save user session to SharedPreferences
   Future<void> saveUserSession(String username, String password) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('username', username);
@@ -219,7 +370,18 @@ class Button extends StatelessWidget {
       return;
     }
 
-    String url = 'http://192.168.0.36:7018/jderest/v3/orchestrator/ORCH_getUserIDPassword';
+    // Retrieve the server URL from SharedPreferences
+    final prefs = await SharedPreferences.getInstance();
+    String? serverUrl = prefs.getString('serverUrl');
+
+    if (serverUrl == null || serverUrl.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Server URL not configured")),
+      );
+      return;
+    }
+
+    String url = 'http://$serverUrl/jderest/v3/orchestrator/ORCH_getUserIDPassword';
 
     // Use the user-entered credentials for authentication
     String basicAuth = 'Basic ${base64Encode(utf8.encode('$username:$password'))}';
@@ -271,9 +433,7 @@ class Button extends StatelessWidget {
           }
 
           if (apiUsername == username && apiPassword == password) {
-            //
             await saveUserSession(username, password);
-
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(content: Text("Login Success")),
             );
@@ -287,10 +447,6 @@ class Button extends StatelessWidget {
               const SnackBar(content: Text("Invalid username or password")),
             );
           }
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("Invalid username or password")),
-          );
         }
       } else {
         ScaffoldMessenger.of(context).showSnackBar(

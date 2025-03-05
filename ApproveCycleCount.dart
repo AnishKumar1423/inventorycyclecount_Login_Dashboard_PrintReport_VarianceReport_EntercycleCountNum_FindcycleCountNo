@@ -1,16 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ApproveCycleCount extends StatefulWidget {
   @override
-  _PrintCycleCountReportPageState createState() => _PrintCycleCountReportPageState();
+  _ApproveCycleCountPageState createState() => _ApproveCycleCountPageState();
 }
 
-class _PrintCycleCountReportPageState extends State<ApproveCycleCount> {
-
+class _ApproveCycleCountPageState extends State<ApproveCycleCount> {
   TextEditingController _controller2 = TextEditingController();
 
   Future<void> _submitReport() async {
@@ -35,8 +33,19 @@ class _PrintCycleCountReportPageState extends State<ApproveCycleCount> {
       return;
     }
 
+    // Retrieve the server URL from SharedPreferences
+    final prefs1 = await SharedPreferences.getInstance();
+    String? serverUrl = prefs1.getString('serverUrl');
+
+    if (serverUrl == null || serverUrl.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Server URL not configured")),
+      );
+      return;
+    }
+
     String url =
-        'http://192.168.0.36:7018/jderest/v3/orchestrator/ORCH_ApproveCycleCount';
+        'http://$serverUrl/jderest/v3/orchestrator/ORCH_ApproveCycleCount';
 
     // Basic Authentication Credentials
     String basicAuth =
@@ -54,18 +63,28 @@ class _PrintCycleCountReportPageState extends State<ApproveCycleCount> {
     print("Request Body: $body");
 
     try {
-      final response = await http.post(Uri.parse(url), headers: headers, body: body);
-      print("Response Status: ${response.statusCode}");
-      print("Response Body: ${response.body}");
+      final uri = Uri.parse(url);
+      final request = http.Request('POST', uri)
+        ..headers.addAll(headers)  // Add headers
+        ..body = body;  // Add body
 
-      if (response.statusCode == 200) {
+      // Send the request and get the response
+      final response = await request.send();
+
+      // Convert the StreamedResponse to a regular Response
+      final responseData = await http.Response.fromStream(response);
+
+      print("Response Status: ${responseData.statusCode}");
+      print("Response Body: ${responseData.body}");
+
+      if (responseData.statusCode == 200) {
         _controller2.clear();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Successfully submitted report')),
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Report submission failed: ${response.body}')),
+          SnackBar(content: Text('Report submission failed: ${responseData.body}')),
         );
       }
     } catch (e) {
@@ -97,8 +116,19 @@ class _PrintCycleCountReportPageState extends State<ApproveCycleCount> {
       return;
     }
 
+    // Retrieve the server URL from SharedPreferences
+    final prefs1 = await SharedPreferences.getInstance();
+    String? serverUrl = prefs1.getString('serverUrl');
+
+    if (serverUrl == null || serverUrl.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Server URL not configured")),
+      );
+      return;
+    }
+
     String url =
-        'http://192.168.0.36:7018/jderest/v3/orchestrator/ORCH_cancelCycleCount';
+        'http://$serverUrl/jderest/v3/orchestrator/ORCH_cancelCycleCount';
 
     // Basic Authentication Credentials
     String basicAuth =
@@ -116,18 +146,28 @@ class _PrintCycleCountReportPageState extends State<ApproveCycleCount> {
     print("Request Body: $body");
 
     try {
-      final response = await http.post(Uri.parse(url), headers: headers, body: body);
-      print("Response Status: ${response.statusCode}");
-      print("Response Body: ${response.body}");
+      final uri = Uri.parse(url);
+      final request = http.Request('POST', uri)
+        ..headers.addAll(headers)  // Add headers
+        ..body = body;  // Add body
 
-      if (response.statusCode == 200) {
+      // Send the request and get the response
+      final response = await request.send();
+
+      // Convert the StreamedResponse to a regular Response
+      final responseData = await http.Response.fromStream(response);
+
+      print("Response Status: ${responseData.statusCode}");
+      print("Response Body: ${responseData.body}");
+
+      if (responseData.statusCode == 200) {
         _controller2.clear();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Successfully canceled cycle count')),
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Cancel request failed: ${response.body}')),
+          SnackBar(content: Text('Cancel request failed: ${responseData.body}')),
         );
       }
     } catch (e) {
@@ -143,40 +183,40 @@ class _PrintCycleCountReportPageState extends State<ApproveCycleCount> {
       appBar: AppBar(
         title: const Text(
           'Approve/Cancel Cycle Count',
-          style: TextStyle(color: Colors.white, fontSize: 20), // Customize text style
+          style: TextStyle(color: Colors.white, fontSize: 20),
         ),
-        backgroundColor: Color(0xFF244e6f),
-        elevation: 4, // Adjust shadow
+        backgroundColor: const Color(0xFF244e6f),
+        elevation: 4,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white), // Set back button icon color to black
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () {
-            Navigator.pop(context); // Go back to the previous screen
+            Navigator.pop(context);
           },
         ),
       ),
       body: Container(
-        color: Colors.white, // Background color
+        color: Colors.white,
         padding: const EdgeInsets.all(16.0),
         child: Center(
           child: Container(
             padding: const EdgeInsets.all(16.0),
             decoration: BoxDecoration(
-              color: Colors.white, // Inner container color
-              borderRadius: BorderRadius.circular(12.0), // Rounded corners
-              border: Border.all(color: Color(0xFF244e6f), width: 2.0), // Outer border
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12.0),
+              border: Border.all(color: const Color(0xFF244e6f), width: 2.0),
               boxShadow: [
                 BoxShadow(
                   color: Colors.grey.withOpacity(0.5),
                   spreadRadius: 3,
                   blurRadius: 5,
-                  offset: Offset(0, 3), // Shadow position
+                  offset: const Offset(0, 3),
                 ),
               ],
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const SizedBox(height: 70), // Reduced space from 100 to 20
+                const SizedBox(height: 45),
                 TextField(
                   controller: _controller2,
                   decoration: const InputDecoration(
@@ -186,22 +226,21 @@ class _PrintCycleCountReportPageState extends State<ApproveCycleCount> {
                     filled: true,
                   ),
                 ),
-                const SizedBox(height: 30),
-
+                const SizedBox(height: 25),
                 ElevatedButton(
                   onPressed: _submitReport,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.green,
-                    foregroundColor: Colors.white, // Set the text color to red
+                    foregroundColor: Colors.white,
                   ),
                   child: const Text('Submit for Approve'),
                 ),
-                const SizedBox(height: 15),
+                const SizedBox(height: 10),
                 ElevatedButton(
                   onPressed: _cancelCycleCount,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.red,
-                    foregroundColor: Colors.white, // Set the text color to red
+                    foregroundColor: Colors.white,
                   ),
                   child: const Text('Cancel Cycle Count'),
                 ),

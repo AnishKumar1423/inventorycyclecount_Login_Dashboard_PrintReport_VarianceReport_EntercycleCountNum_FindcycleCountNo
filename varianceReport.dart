@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-
 import 'package:shared_preferences/shared_preferences.dart';
 
 class VarianceReport extends StatefulWidget {
@@ -36,8 +35,19 @@ class _VarianceReportPageState extends State<VarianceReport> {
       return;
     }
 
+    // Retrieve the server URL from SharedPreferences
+    final prefs1 = await SharedPreferences.getInstance();
+    String? serverUrl = prefs1.getString('serverUrl');
+
+    if (serverUrl == null || serverUrl.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Server URL not configured")),
+      );
+      return;
+    }
+
     String url =
-        'http://192.168.0.36:7018/jderest/v3/orchestrator/ORCH_varienceReport';
+        'http://$serverUrl/jderest/v3/orchestrator/ORCH_varienceReport';
 
     // Basic Authentication Credentials
     String basicAuth =
@@ -56,17 +66,28 @@ class _VarianceReportPageState extends State<VarianceReport> {
     print("Request Body: $body"); // Debugging log
 
     try {
-      final response = await http.post(Uri.parse(url), headers: headers, body: body);
-      print("Response Status: ${response.statusCode}"); // Debugging log
-      print("Response Body: ${response.body}"); // Debugging log
+      // Create a request object
+      final uri = Uri.parse(url);
+      final request = http.Request('POST', uri)
+        ..headers.addAll(headers)  // Add headers
+        ..body = body;  // Add body
 
-      if (response.statusCode == 200) {
+      // Send the request and get the response
+      final response = await request.send();
+
+      // Convert the StreamedResponse to a regular Response
+      final responseData = await http.Response.fromStream(response);
+
+      print("Response Status: ${responseData.statusCode}"); // Debugging log
+      print("Response Body: ${responseData.body}"); // Debugging log
+
+      if (responseData.statusCode == 200) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Successfully submitted report')),
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Not successfully submitted')),
+          SnackBar(content: Text('Report submission failed: ${responseData.body}')),
         );
       }
     } catch (e) {
@@ -84,7 +105,7 @@ class _VarianceReportPageState extends State<VarianceReport> {
           'Variance Report',
           style: TextStyle(color: Colors.white, fontSize: 20), // Customize text style
         ),
-        backgroundColor: Color(0xFF244e6f),
+        backgroundColor: const Color(0xFF244e6f),
         elevation: 4, // Adjust shadow
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white), // Set back button icon color to black
@@ -102,20 +123,20 @@ class _VarianceReportPageState extends State<VarianceReport> {
             decoration: BoxDecoration(
               color: Colors.white, // Inner container color
               borderRadius: BorderRadius.circular(12.0), // Rounded corners
-              border: Border.all(color: Color(0xFF244e6f), width: 2.0), // Outer border
+              border: Border.all(color: const Color(0xFF244e6f), width: 2.0), // Outer border
               boxShadow: [
                 BoxShadow(
                   color: Colors.grey.withOpacity(0.5),
                   spreadRadius: 3,
                   blurRadius: 5,
-                  offset: Offset(0, 3), // Shadow position
+                  offset: const Offset(0, 3), // Shadow position
                 ),
               ],
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const SizedBox(height: 70), // Reduced space from 100 to 20
+                const SizedBox(height: 45), // Reduced space from 100 to 20
                 TextField(
                   controller: _controller1,
                   decoration: const InputDecoration(
@@ -125,7 +146,7 @@ class _VarianceReportPageState extends State<VarianceReport> {
                     filled: true,
                   ),
                 ),
-                SizedBox(height: 20),
+                const SizedBox(height: 20),
                 TextField(
                   controller: _controller2,
                   decoration: const InputDecoration(
