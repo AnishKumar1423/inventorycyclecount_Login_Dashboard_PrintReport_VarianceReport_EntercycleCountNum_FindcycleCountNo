@@ -4,6 +4,8 @@ import 'dart:convert';
 import 'dart:async';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'cycleCountDashboard.dart';
+
 class UpdateCycleCount extends StatefulWidget {
   @override
   _UpdateCycleCountState createState() => _UpdateCycleCountState();
@@ -109,6 +111,13 @@ class _UpdateCycleCountState extends State<UpdateCycleCount> {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(content: Text('Successfully updated cycle count')),
                 );
+                // Wait for the snackbar to show for a moment, then navigate back
+                Future.delayed(const Duration(seconds: 2), () {
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (context) => const CycleCountDashboard()),
+                  );
+                });
               } else if (cycleStatus == "40") {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(content: Text('Failed to update cycle count')),

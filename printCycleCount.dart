@@ -3,6 +3,8 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'cycleCountDashboard.dart';
+
 class PrintCycleCountReport extends StatefulWidget {
   const PrintCycleCountReport({super.key});
 
@@ -82,9 +84,18 @@ class _PrintCycleCountReportPageState
 
       if (responseData.statusCode == 200) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Successfully submitted report')),
+          const SnackBar(content: Text('Successfully submitted report')),
         );
-      } else {
+
+        // Wait for the snackbar to show for a moment, then navigate back
+        Future.delayed(const Duration(seconds: 2), () {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const CycleCountDashboard()),
+          );
+        });
+      }
+      else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Report submission failed: ${responseData.body}')),
         );

@@ -3,6 +3,8 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'cycleCountDashboard.dart';
+
 class ApproveCycleCount extends StatefulWidget {
   @override
   _ApproveCycleCountPageState createState() => _ApproveCycleCountPageState();
@@ -80,8 +82,15 @@ class _ApproveCycleCountPageState extends State<ApproveCycleCount> {
       if (responseData.statusCode == 200) {
         _controller2.clear();
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Successfully submitted report')),
+          SnackBar(content: Text('Successfully Approve Cycle Count Number')),
         );
+        // Wait for the snackbar to show for a moment, then navigate back
+        Future.delayed(const Duration(seconds: 2), () {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const CycleCountDashboard()),
+          );
+        });
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Report submission failed: ${responseData.body}')),
@@ -163,8 +172,15 @@ class _ApproveCycleCountPageState extends State<ApproveCycleCount> {
       if (responseData.statusCode == 200) {
         _controller2.clear();
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Successfully canceled cycle count')),
+          SnackBar(content: Text('Successfully Cancel cycle count Number')),
         );
+        // Wait for the snackbar to show for a moment, then navigate back
+        Future.delayed(const Duration(seconds: 2), () {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const CycleCountDashboard()),
+          );
+        });
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Cancel request failed: ${responseData.body}')),

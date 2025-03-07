@@ -170,7 +170,7 @@ class _EnterQuantityState extends State<EnterCycleQuantityNumber> {
         'http://$serverUrl/jderest/v3/orchestrator/ORCH_enterQuantityP41240';
     String enteredQty = qtyControllers[index]?.text ?? '';
 
-  //Basic Authentication
+    //Basic Authentication
 
     String basicAuth =
         'Basic ${base64Encode(utf8.encode('$username:$password'))}';

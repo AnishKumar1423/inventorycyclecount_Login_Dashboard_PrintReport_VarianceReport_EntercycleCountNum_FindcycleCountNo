@@ -3,6 +3,8 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'cycleCountDashboard.dart';
+
 class VarianceReport extends StatefulWidget {
   @override
   _VarianceReportPageState createState() => _VarianceReportPageState();
@@ -85,6 +87,13 @@ class _VarianceReportPageState extends State<VarianceReport> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Successfully submitted report')),
         );
+        // Wait for the snackbar to show for a moment, then navigate back
+        Future.delayed(const Duration(seconds: 2), () {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const CycleCountDashboard()),
+          );
+        });
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Report submission failed: ${responseData.body}')),

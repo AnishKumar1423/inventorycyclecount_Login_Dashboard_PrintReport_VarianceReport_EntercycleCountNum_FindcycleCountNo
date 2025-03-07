@@ -55,6 +55,18 @@ class ServerConfigPage extends StatelessWidget {
 
   ServerConfigPage({super.key});
 
+  Future<bool> checkServerConnection(String url) async {
+    try {
+      final response = await http.get(Uri.parse('http://$url/studio/')).timeout(
+        const Duration(seconds: 1),
+      );
+      return response.statusCode == 200;
+    } catch (e) {
+      return false;
+    }
+  }
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -128,6 +140,15 @@ class ServerConfigPage extends StatelessWidget {
                             return;
                           }
 
+                          // Check if the server URL is valid
+                          bool isConnected = await checkServerConnection(url);
+                          if (!isConnected) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Server not reachable. Please check the URL.')),
+                            );
+                            return;
+                          }
+
                           // Save only the server URL without clearing other preferences
                           final prefs = await SharedPreferences.getInstance();
                           await prefs.setString('serverUrl', url);
@@ -135,9 +156,11 @@ class ServerConfigPage extends StatelessWidget {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(content: Text('Server URL saved successfully')),
                           );
+                          // Navigate to Login Page
+                          Navigator.pushReplacement(context,MaterialPageRoute(builder: (context) => LoginPage()),);
 
-                          // Restart the app to apply the new server URL
-                          Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => MyApp()));
+                          // // Restart the app to apply the new server URL
+                          // Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => MyApp()));
                         },
 
 
@@ -161,6 +184,7 @@ class ServerConfigPage extends StatelessWidget {
     );
   }
 }
+
 
 // Login Page
 class LoginPage extends StatelessWidget {
@@ -230,6 +254,8 @@ class Header extends StatelessWidget {
         children: <Widget>[
           Image.asset(
             'assets/image/Anish.png',
+            height: 180, // Set the height
+            width: 200,  // Set the width
             fit: BoxFit.contain,
           ),
           const Text(
@@ -291,16 +317,34 @@ class InputField extends StatefulWidget {
   @override
   _InputFieldState createState() => _InputFieldState();
 }
-
 bool _obscureText = true;
-
 class _InputFieldState extends State<InputField> {
   @override
   Widget build(BuildContext context) {
     return Column(
       children: <Widget>[
+        const Align(
+          alignment: Alignment.centerLeft,
+          child: Padding(
+            padding: EdgeInsets.symmetric(vertical: 0),
+            child: Text(
+              "SIGN IN",
+              style: TextStyle(color: Colors.black87, fontSize: 16,fontWeight: FontWeight.bold),
+            ),
+          ),
+        ),
+        const Align(
+          alignment: Alignment.centerLeft,
+          child: Padding(
+            padding: EdgeInsets.symmetric(vertical: 0),
+            child: Text(
+              "Hi There! Nice to see you again.",
+              style: TextStyle(color: Colors.black54, fontSize: 16),
+            ),
+          ),
+        ),
         Container(
-          padding: const EdgeInsets.all(10),
+          padding: const EdgeInsets.all(0),
           decoration: const BoxDecoration(
             border: Border(bottom: BorderSide(color: Colors.grey)),
           ),
@@ -318,7 +362,7 @@ class _InputFieldState extends State<InputField> {
           ),
         ),
         Container(
-          padding: const EdgeInsets.all(10),
+          padding: const EdgeInsets.all(0),
           decoration: const BoxDecoration(
             border: Border(bottom: BorderSide(color: Colors.grey)),
           ),
@@ -478,15 +522,15 @@ class Button extends StatelessWidget {
         await login(context);
       },
       child: Container(
-        height: 50,
-        margin: const EdgeInsets.symmetric(horizontal: 50),
+        height: 45,
+        margin: const EdgeInsets.symmetric(horizontal: 45),
         decoration: BoxDecoration(
           color: const Color(0xFF244e6f),
           borderRadius: BorderRadius.circular(10),
         ),
         child: const Center(
           child: Text(
-            "SIGN IN",
+            "LOGIN",
             style: TextStyle(
               color: Colors.white,
               fontSize: 23,
